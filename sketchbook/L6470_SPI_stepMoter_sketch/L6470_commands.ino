@@ -164,6 +164,9 @@ void L6470_move(int dia,long n_step){
 void L6470_goto(long pos){
   L6470_transfer(0x60,3,pos);
 }
+void L6470_goto_u(long pos) {
+  L6470_transfer_u(0x60,3,pos);
+}
 void L6470_gotodia(int dia,int pos){
   if(dia==1)    
     L6470_transfer(0x69,3,pos);
@@ -216,6 +219,9 @@ void L6470_softstop(){
 void L6470_hardstop(){
   L6470_transfer(0xb8,0,0);
 }
+void L6470_hardstop_u(){
+  L6470_transfer_u(0xb8,0,0);
+}
 void L6470_softhiz(){
   L6470_transfer(0xa0,0,0);
 }
@@ -251,6 +257,23 @@ void L6470_transfer(int add,int bytes,long val){
     L6470_send(data[0]);
   }  
 }
+void L6470_transfer_u(int add,int bytes,long val){
+  int data[3];
+  L6470_send_u(add);
+  for(int i=0;i<=bytes-1;i++){
+    data[i] = val & 0xff;  
+    val = val >> 8;
+  }
+  if(bytes==3){
+    L6470_send_u(data[2]);
+  }
+  if(bytes>=2){
+    L6470_send_u(data[1]);
+  }
+  if(bytes>=1){
+    L6470_send_u(data[0]);
+  }  
+}
 void L6470_send(unsigned char add_or_val){
   while(!digitalRead(PIN_BUSY)){
   } //BESYが解除されるまで待機
@@ -280,6 +303,3 @@ long L6470_getparam(int add,int bytes){
   }
   return val;
 }
-
-
-
