@@ -50,24 +50,24 @@ void L6470_getparam_config(long *val, int n){return L6470_getparam(val,n,0x18,2)
 void L6470_getparam_status(long *val, int n){return L6470_getparam(val,n,0x19,2);}
 
 
-// void L6470_run(int dia,long spd){
-//   if(dia==1)
-//     L6470_transfer(0x51,3,spd);
-//   else
-//     L6470_transfer(0x50,3,spd);
-// }
-// void L6470_stepclock(int dia){
-//   if(dia==1)
-//     L6470_transfer(0x59,0,0);    
-//   else
-//     L6470_transfer(0x58,0,0);
-// }
-// void L6470_move(int dia,long n_step){
-//   if(dia==1)
-//     L6470_transfer(0x41,3,n_step);
-//   else
-//     L6470_transfer(0x40,3,n_step);
-// }
+void L6470_run(int n,int dia,long spd){
+  if(dia==1)
+    L6470_transfer(n,0x51,3,spd);
+  else
+    L6470_transfer(n,0x50,3,spd);
+}
+void L6470_stepclock(int n,int dia){
+  if(dia==1)
+    L6470_transfer(n,0x59,0,0);    
+  else
+    L6470_transfer(n,0x58,0,0);
+}
+void L6470_move(int n,int dia,long n_step){
+  if(dia==1)
+    L6470_transfer(n,0x41,3,n_step);
+  else
+    L6470_transfer(n,0x40,3,n_step);
+}
 void L6470_goto(int n, long pos){
   L6470_transfer(n, 0x60,3,pos);
 }
@@ -139,17 +139,17 @@ void L6470_softhiz(int n){
 void L6470_hardhiz(int n){
   L6470_transfer(n,0xa8,0,0);
 }
-// long L6470_getstatus(){
-//   long val=0;
-//   L6470_send_u(0xd0);
-//   for(int i=0;i<=1;i++){
-//     val = val << 8;
-//     digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
-//     val = val | SPI.transfer(0x00); // アドレスもしくはデータ送信。
-//     digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
-//   }
-//   return val;
-// }
+void L6470_getstatus(long *val, int n){
+  L6470_send_u(n,0xd0);
+  for(int i=0;i<=1;i++){
+    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
+    for (int j = 0; j < n; j += 1) {
+      val[j] = val[j] << 8;
+      val[j] = val[j] | SPI.transfer(0x00); // アドレスもしくはデータ送信。
+    }
+    digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+  }
+}
 
 void L6470_transfer(int n, int add,int bytes,long val){
   int data[3][n];

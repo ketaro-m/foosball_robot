@@ -12,14 +12,14 @@
 #define PIN_SPI_SCK 13
 #define PIN_SPI_SS 10
 #define PIN_BUSY 9
-int FLAG_PIN[N] = {2,3};
-int ERROR_PIN[N] = {14,15};
+int FLAG_PIN[N] = {2,3}; // digital pins
+int RESET_PIN[N] = {14,15}; // analog pins
 int pos = 80;
 boolean err_flag = false;
 
 long stroke = 200*pow(2, 7); // steps per stroke
 
-long param[N];
+long param[N]; // array to get and store register values such as abs_pos, speed, etc.
 
 void setup()
 {
@@ -31,8 +31,9 @@ void setup()
   pinMode(PIN_BUSY, INPUT);
   for (int i=0; i<N; i+=1) {
     pinMode(FLAG_PIN[i], INPUT);
-    pinMode(ERROR_PIN[i], OUTPUT);
-    digitalWrite(ERROR_PIN[i], HIGH);
+    /* use RESET PINs (analog pin) as digital pull down pins. */
+    pinMode(RESET_PIN[i], OUTPUT);
+    digitalWrite(RESET_PIN[i], HIGH);
   }
   SPI.begin();
   SPI.setDataMode(SPI_MODE3);
@@ -41,7 +42,7 @@ void setup()
   digitalWrite(PIN_SPI_SS, HIGH);
  
   L6470_resetdevice(N); //L6470リセット
-  L6470_setup();  //L6470を設定
+  L6470_setup(N);  //L6470を設定
   delay(2000);
   
   MsTimer2::set(50, fulash);//シリアルモニター用のタイマー割り込み
@@ -106,21 +107,21 @@ void loop(){
   // }
 }
 
-void L6470_setup(){
+void L6470_setup(int n){
 // スライダは1回転 40mm
-L6470_setparam_acc(N, 0x300); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
-L6470_setparam_dec(N, 0x300); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
-L6470_setparam_maxspeed(N, 0x60); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
-L6470_setparam_minspeed(N, 0x01); //[R, WS]最小速度default 0x000 (1+12bit) (0.238*val[step/s])
-L6470_setparam_fsspd(N, 0x3ff); //[R, WR]μステップからフルステップへの切替点速度default 0x027 (10bit) (15.25*val+7.63[step/s])
-L6470_setparam_kvalhold(N, 0x50); //[R, WR]停止時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_kvalrun(N, 0x50); //[R, WR]定速回転時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_kvalacc(N, 0x50); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_kvaldec(N, 0x50); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_alareen(N, 0x70); // alarm enable for switch, stall detection
-L6470_setparam_stallth(N, 0x05); // 脱調検知の閾値 need tuning
+L6470_setparam_acc(n, 0x50); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
+L6470_setparam_dec(n, 0x50); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
+L6470_setparam_maxspeed(n, 0x60); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
+L6470_setparam_minspeed(n, 0x01); //[R, WS]最小速度default 0x000 (1+12bit) (0.238*val[step/s])
+L6470_setparam_fsspd(n, 0x3ff); //[R, WR]μステップからフルステップへの切替点速度default 0x027 (10bit) (15.25*val+7.63[step/s])
+L6470_setparam_kvalhold(n, 0x50); //[R, WR]停止時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_kvalrun(n, 0x50); //[R, WR]定速回転時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_kvalacc(n, 0x50); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_kvaldec(n, 0x50); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_alareen(n, 0x70); // alarm enable for switch, stall detection
+L6470_setparam_stallth(n, 0x10); // 脱調検知の閾値 need tuning
 
-L6470_setparam_stepmood(N, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
+L6470_setparam_stepmood(n, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
 }
 
 // void func_on() {
@@ -166,8 +167,8 @@ void fulash(){
   // Serial.print( pos2dist(L6470_getparam_abspos()),DEC);
   L6470_getparam_speed(param, N);
   Serial.print("  SPEED : ");
-  Serial.print("0x");
   for (int i = 0; i < N; i += 1) {
+    Serial.print("0x");
     Serial.print(param[i],HEX);
     Serial.print(",");
   }
@@ -175,6 +176,10 @@ void fulash(){
   Serial.print("  FLAG : ");
   for (int i=0; i<N; i+=1) {
     Serial.print(digitalRead(FLAG_PIN[i]));
+  }
+  Serial.print(",  RESET : ");
+  for (int i=0; i<N; i+=1) {
+    Serial.print(digitalRead(RESET_PIN[i]));
   }
   Serial.println();
 }
