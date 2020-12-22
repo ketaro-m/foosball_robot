@@ -58,9 +58,9 @@ void L6470_run(int n,int dia,long spd){
 }
 void L6470_stepclock(int n,int dia){
   if(dia==1)
-    L6470_transfer(n,0x59,0,0);    
+    L6470_transfer(n,0x59,0,(long)0);    
   else
-    L6470_transfer(n,0x58,0,0);
+    L6470_transfer(n,0x58,0,(long)0);
 }
 void L6470_move(int n,int dia,long n_step){
   if(dia==1)
@@ -71,19 +71,21 @@ void L6470_move(int n,int dia,long n_step){
 void L6470_goto(int n, long pos){
   L6470_transfer(n, 0x60,3,pos);
 }
+void L6470_goto(int n, long *pos){
+  L6470_transfer(n, 0x60,3,pos);
+}
 void L6470_goto_u(int n, long pos) {
   L6470_transfer_u(n, 0x60,3,pos);
 }
-// void L6470_goto2(long pos1, long pos2) {
-//   L6470_transfer2(0x60,3,pos1, pos2);
-// }
+void L6470_goto_u(int n, long *pos) {
+  L6470_transfer_u(n, 0x60,3,pos);
+}
 void L6470_gotodia(int n,int dia,int pos){
   if(dia==1)    
     L6470_transfer(n,0x69,3,pos);
   else    
     L6470_transfer(n,0x68,3,pos);
 }
-// void L6470_gotodia2
 void L6470_gountil(int n,int act,int dia,long spd){
   if(act==1)
     if(dia==1)
@@ -99,24 +101,25 @@ void L6470_gountil(int n,int act,int dia,long spd){
 void L6470_relesesw(int n,int act,int dia){
   if(act==1)
     if(dia==1)
-      L6470_transfer(n,0x9b,0,0);
+      L6470_transfer(n,0x9b,0,(long)0);
     else
-      L6470_transfer(n,0x9a,0,0);
+      L6470_transfer(n,0x9a,0,(long)0);
   else
     if(dia==1)
-      L6470_transfer(n,0x93,0,0);
+      L6470_transfer(n,0x93,0,(long)0);
     else
-      L6470_transfer(n,0x92,0,0);
+      L6470_transfer(n,0x92,0,(long)0);
 }
 void L6470_gohome(int n){
-  L6470_transfer(n,0x70,0,0);
+  L6470_transfer(n,0x70,0,(long)0);
 }
 void L6470_gomark(int n){
-  L6470_transfer(n,0x78,0,0);
+  L6470_transfer(n,0x78,0,(long)0);
 }
 void L6470_resetpos(int n){
-  L6470_transfer(n,0xd8,0,0);
+  L6470_transfer(n,0xd8,0,(long)0);
 }
+/* reset all n motors. */
 void L6470_resetdevice(int n){
   L6470_send_u(n,0x00);//nop命令
   L6470_send_u(n,0x00);
@@ -124,20 +127,33 @@ void L6470_resetdevice(int n){
   L6470_send_u(n,0x00);
   L6470_send_u(n,0xc0);
 }
+/* reset mth motor in n motors. */
+void L6470_resetdevice(int m, int n){
+  int tmp[n];
+  for (int i = 0; i < n; i += 1) {
+    tmp[i] = 0x00;
+  }
+  tmp[m] = 0xc0;
+  L6470_send_u(n,0x00);//nop命令
+  L6470_send_u(n,0x00);
+  L6470_send_u(n,0x00);
+  L6470_send_u(n,0x00);
+  L6470_send_u(n,tmp);
+}
 void L6470_softstop(int n){
-  L6470_transfer(n,0xb0,0,0);
+  L6470_transfer(n,0xb0,0,(long)0);
 }
 void L6470_hardstop(int n){
-  L6470_transfer(n,0xb8,0,0);
+  L6470_transfer(n,0xb8,0,(long)0);
 }
 void L6470_hardstop_u(int n){
-  L6470_transfer_u(n,0xb8,0,0);
+  L6470_transfer_u(n,0xb8,0,(long)0);
 }
 void L6470_softhiz(int n){
-  L6470_transfer(n,0xa0,0,0);
+  L6470_transfer(n,0xa0,0,(long)0);
 }
 void L6470_hardhiz(int n){
-  L6470_transfer(n,0xa8,0,0);
+  L6470_transfer(n,0xa8,0,(long)0);
 }
 void L6470_getstatus(long *val, int n){
   L6470_send_u(n,0xd0);
@@ -176,6 +192,25 @@ void L6470_transfer(int n, int add,int bytes,long val){
   //   }
   // }
 }
+void L6470_transfer(int n, int add,int bytes,long *val){
+  int data[3][n];
+  L6470_send(n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val[j] & 0xff;
+      val[j] = val[j] >> 8;
+    }
+  }
+  if(bytes==3){
+    L6470_send(n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send(n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send(n, data[0]);
+  }  
+}
 void L6470_transfer_u(int n, int add,int bytes,long val){
   int data[3][n];
   L6470_send_u(n, add);
@@ -184,6 +219,25 @@ void L6470_transfer_u(int n, int add,int bytes,long val){
       data[i][j] = val & 0xff;
     }
     val = val >> 8;
+  }
+  if(bytes==3){
+    L6470_send_u(n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send_u(n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send_u(n, data[0]);
+  }  
+}
+void L6470_transfer_u(int n, int add,int bytes,long *val){
+  int data[3][n];
+  L6470_send_u(n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val[j] & 0xff;
+      val[j] = val[j] >> 8;
+    }
   }
   if(bytes==3){
     L6470_send_u(n, data[2]);

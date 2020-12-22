@@ -6,7 +6,7 @@
 // number of motors
 #define N 2
 
-// ピン定義。
+// define pins
 #define PIN_SPI_MOSI 11
 #define PIN_SPI_MISO 12
 #define PIN_SPI_SCK 13
@@ -17,7 +17,9 @@ int RESET_PIN[N] = {14,15}; // analog pins
 int pos = 80;
 boolean err_flag = false;
 
-long stroke = 200*pow(2, 7); // steps per stroke
+// parameters according to this machine environment
+long ROT = 200*pow(2, 7); // steps per 1 rotation
+long STROKE = 40; // stroke[mm] per 1 rotation
 
 long param[N]; // array to get and store register values such as abs_pos, speed, etc.
 
@@ -41,12 +43,12 @@ void setup()
   Serial.begin(9600);
   digitalWrite(PIN_SPI_SS, HIGH);
  
-  L6470_resetdevice(N); //L6470リセット
-  L6470_setup(N);  //L6470を設定
+  L6470_resetdevice(N); //reset all motors
+  L6470_setup();
   delay(2000);
   
   MsTimer2::set(50, fulash);//シリアルモニター用のタイマー割り込み
-  // MsTimer2::set(3000, func_timer);//overwrite用のタイマー割り込み
+  // MsTimer2::set(500, func_timer);//overwrite用のタイマー割り込み
   MsTimer2::start();
   delay(2000);
 
@@ -61,15 +63,12 @@ void setup()
   // }
 
   /* basic move for multi motors*/
-  L6470_goto(N, dist2pos(40*1.75));
+  L6470_goto(N, dist2pos(40));
   for (int i = 0; i < 5; i += 1) {
-    L6470_goto(N, dist2pos(40*0.75));
-    L6470_busydelay(1000);
-    if (i%2 == 0) {
-      L6470_goto(N, dist2pos(40*1.75));
-    } else {
-      L6470_goto(1, dist2pos(40*1.75));
-    }
+    long pos_array1[N] = {0, 40};dist2pos(N,pos_array1);
+    long pos_array2[N] = {40, 0};dist2pos(N,pos_array2);
+    L6470_goto(N, pos_array1);
+    L6470_goto(N, pos_array2);
   }
 
   // /* sample for encoder reset */
@@ -107,22 +106,22 @@ void loop(){
   // }
 }
 
-void L6470_setup(int n){
-// スライダは1回転 40mm
-L6470_setparam_acc(n, 0x50); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
-L6470_setparam_dec(n, 0x50); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
-L6470_setparam_maxspeed(n, 0x60); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
-L6470_setparam_minspeed(n, 0x01); //[R, WS]最小速度default 0x000 (1+12bit) (0.238*val[step/s])
-L6470_setparam_fsspd(n, 0x3ff); //[R, WR]μステップからフルステップへの切替点速度default 0x027 (10bit) (15.25*val+7.63[step/s])
-L6470_setparam_kvalhold(n, 0x50); //[R, WR]停止時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_kvalrun(n, 0x50); //[R, WR]定速回転時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_kvalacc(n, 0x50); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_kvaldec(n, 0x50); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-L6470_setparam_alareen(n, 0x70); // alarm enable for switch, stall detection
-L6470_setparam_stallth(n, 0x10); // 脱調検知の閾値 need tuning
+/* setup all motors. */
+void L6470_setup(){
+L6470_setparam_acc(N, 0x50); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
+L6470_setparam_dec(N, 0x50); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
+L6470_setparam_maxspeed(N, 0x60); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
+L6470_setparam_minspeed(N, 0x01); //[R, WS]最小速度default 0x000 (1+12bit) (0.238*val[step/s])
+L6470_setparam_fsspd(N, 0x3ff); //[R, WR]μステップからフルステップへの切替点速度default 0x027 (10bit) (15.25*val+7.63[step/s])
+L6470_setparam_kvalhold(N, 0x50); //[R, WR]停止時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_kvalrun(N, 0x50); //[R, WR]定速回転時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_kvalacc(N, 0x50); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_kvaldec(N, 0x50); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
+L6470_setparam_alareen(N, 0x70); // alarm enable for switch, stall detection
+L6470_setparam_stallth(N, 0x07); // 脱調検知の閾値 need tuning
 
-L6470_setparam_stepmood(n, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
-}
+L6470_setparam_stepmood(N, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
+} 
 
 // void func_on() {
 //   noInterrupts();
@@ -140,21 +139,41 @@ void func_timer() {
 
 /* functions to change distance[mm] or angle[degree] to steps(pos)*/
 long dist2pos(long distance) {
-  if (distance > 90) {
-    distance = 90;
-  } else if (distance < 0) {
-    distance = 0;
+  // if (distance > 90) {
+  //   distance = 90;
+  // } else if (distance < 0) {
+  //   distance = 0;
+  // }
+  return ROT * distance / STROKE;
+}
+void dist2pos(int n, long *distance) {
+  for (int i = 0; i < n; i += 1) {
+    distance[i] = dist2pos(distance[i]);
   }
-  return stroke * distance / 40;
 }
 long ang2pos(long angle) {
-  return stroke * (-angle) / 360;
+  return ROT * (-angle) / 360;
+}
+void ang2pos(int n, long *angle) {
+  for (int i = 0; i < n; i += 1) {
+    angle[i]  = ang2pos(angle[i]);
+  }
 }
 long pos2dist(long position) {
-  return position * 40 / stroke;
+  return position * STROKE / ROT;
+}
+void pos2dist(int n, long *position) {
+  for (int i = 0; i < n; i += 1) {
+    position[i] = pos2dist(position[i]);
+  }
 }
 long pos2ang(long position) {
-  return (-position) * 360 / stroke;
+  return (-position) * 360 / ROT;
+}
+void pos2ang(int n, long *position) {
+  for (int i = 0; i < n; i += 1) {
+    position[i] = pos2ang(position[i]);
+  }
 }
 
 void fulash(){
