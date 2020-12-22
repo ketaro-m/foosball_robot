@@ -23,31 +23,31 @@ void L6470_setparam_stepmood(int n, long val){L6470_transfer(n,0x16,1,val);}
 void L6470_setparam_alareen(int n, long val){L6470_transfer(n,0x17,1,val);}
 void L6470_setparam_config(int n, long val){L6470_transfer(n,0x18,2,val);}
 
-// long L6470_getparam_abspos(){return L6470_getparam(0x01,3);}
-// long L6470_getparam_elpos(){return L6470_getparam(0x02,2);}
-// long L6470_getparam_mark(){return L6470_getparam(0x03,3);}
-// long L6470_getparam_speed(){return L6470_getparam(0x04,3);}
-// long L6470_getparam_acc(){return L6470_getparam(0x05,2);}
-// long L6470_getparam_dec(){return L6470_getparam(0x06,2);}
-// long L6470_getparam_maxspeed(){return L6470_getparam(0x07,2);}
-// long L6470_getparam_minspeed(){return L6470_getparam(0x08,2);}
-// long L6470_getparam_fsspd(){return L6470_getparam(0x15,2);}
-// long L6470_getparam_kvalhold(){return L6470_getparam(0x09,1);}
-// long L6470_getparam_kvalrun(){return L6470_getparam(0x0a,1);}
-// long L6470_getparam_kvalacc(){return L6470_getparam(0x0b,1);}
-// long L6470_getparam_kvaldec(){return L6470_getparam(0x0c,1);}
-// long L6470_getparam_intspd(){return L6470_getparam(0x0d,2);}
-// long L6470_getparam_stslp(){return L6470_getparam(0x0e,1);}
-// long L6470_getparam_fnslpacc(){return L6470_getparam(0x0f,1);}
-// long L6470_getparam_fnslpdec(){return L6470_getparam(0x10,1);}
-// long L6470_getparam_ktherm(){return L6470_getparam(0x11,1);}
-// long L6470_getparam_adcout(){return L6470_getparam(0x12,1);}
-// long L6470_getparam_ocdth(){return L6470_getparam(0x13,1);}
-// long L6470_getparam_stallth(){return L6470_getparam(0x14,1);}
-// long L6470_getparam_stepmood(){return L6470_getparam(0x16,1);}
-// long L6470_getparam_alareen(){return L6470_getparam(0x17,1);}
-// long L6470_getparam_config(){return L6470_getparam(0x18,2);}
-// long L6470_getparam_status(){return L6470_getparam(0x19,2);}
+void L6470_getparam_abspos(long *val, int n){return L6470_getparam(val,n,0x01,3);}
+void L6470_getparam_elpos(long *val, int n){return L6470_getparam(val,n,0x02,2);}
+void L6470_getparam_mark(long *val, int n){return L6470_getparam(val,n,0x03,3);}
+void L6470_getparam_speed(long *val, int n){return L6470_getparam(val,n,0x04,3);}
+void L6470_getparam_acc(long *val, int n){return L6470_getparam(val,n,0x05,2);}
+void L6470_getparam_dec(long *val, int n){return L6470_getparam(val,n,0x06,2);}
+void L6470_getparam_maxspeed(long *val, int n){return L6470_getparam(val,n,0x07,2);}
+void L6470_getparam_minspeed(long *val, int n){return L6470_getparam(val,n,0x08,2);}
+void L6470_getparam_fsspd(long *val, int n){return L6470_getparam(val,n,0x15,2);}
+void L6470_getparam_kvalhold(long *val, int n){return L6470_getparam(val,n,0x09,1);}
+void L6470_getparam_kvalrun(long *val, int n){return L6470_getparam(val,n,0x0a,1);}
+void L6470_getparam_kvalacc(long *val, int n){return L6470_getparam(val,n,0x0b,1);}
+void L6470_getparam_kvaldec(long *val, int n){return L6470_getparam(val,n,0x0c,1);}
+void L6470_getparam_intspd(long *val, int n){return L6470_getparam(val,n,0x0d,2);}
+void L6470_getparam_stslp(long *val, int n){return L6470_getparam(val,n,0x0e,1);}
+void L6470_getparam_fnslpacc(long *val, int n){return L6470_getparam(val,n,0x0f,1);}
+void L6470_getparam_fnslpdec(long *val, int n){return L6470_getparam(val,n,0x10,1);}
+void L6470_getparam_ktherm(long *val, int n){return L6470_getparam(val,n,0x11,1);}
+void L6470_getparam_adcout(long *val, int n){return L6470_getparam(val,n,0x12,1);}
+void L6470_getparam_ocdth(long *val, int n){return L6470_getparam(val,n,0x13,1);}
+void L6470_getparam_stallth(long *val, int n){return L6470_getparam(val,n,0x14,1);}
+void L6470_getparam_stepmood(long *val, int n){return L6470_getparam(val,n,0x16,1);}
+void L6470_getparam_alareen(long *val, int n){return L6470_getparam(val,n,0x17,1);}
+void L6470_getparam_config(long *val, int n){return L6470_getparam(val,n,0x18,2);}
+void L6470_getparam_status(long *val, int n){return L6470_getparam(val,n,0x19,2);}
 
 
 // void L6470_run(int dia,long spd){
@@ -69,10 +69,7 @@ void L6470_setparam_config(int n, long val){L6470_transfer(n,0x18,2,val);}
 //     L6470_transfer(0x40,3,n_step);
 // }
 void L6470_goto(int n, long pos){
-  Serial.println("goto");
   L6470_transfer(n, 0x60,3,pos);
-    //  L6470_send(n, 0x60);
-    //  send3_L6470(pos, pos);
 }
 void L6470_goto_u(int n, long pos) {
   L6470_transfer_u(n, 0x60,3,pos);
@@ -80,45 +77,46 @@ void L6470_goto_u(int n, long pos) {
 // void L6470_goto2(long pos1, long pos2) {
 //   L6470_transfer2(0x60,3,pos1, pos2);
 // }
-// void L6470_gotodia(int dia,int pos){
-//   if(dia==1)    
-//     L6470_transfer(0x69,3,pos);
-//   else    
-//     L6470_transfer(0x68,3,pos);
-// }
-// void L6470_gountil(int act,int dia,long spd){
-//   if(act==1)
-//     if(dia==1)
-//       L6470_transfer(0x8b,3,spd);
-//     else
-//       L6470_transfer(0x8a,3,spd);
-//   else
-//     if(dia==1)
-//       L6470_transfer(0x83,3,spd);
-//     else
-//       L6470_transfer(0x82,3,spd);
-// }  
-// void L6470_relesesw(int act,int dia){
-//   if(act==1)
-//     if(dia==1)
-//       L6470_transfer(0x9b,0,0);
-//     else
-//       L6470_transfer(0x9a,0,0);
-//   else
-//     if(dia==1)
-//       L6470_transfer(0x93,0,0);
-//     else
-//       L6470_transfer(0x92,0,0);
-// }
+void L6470_gotodia(int n,int dia,int pos){
+  if(dia==1)    
+    L6470_transfer(n,0x69,3,pos);
+  else    
+    L6470_transfer(n,0x68,3,pos);
+}
+// void L6470_gotodia2
+void L6470_gountil(int n,int act,int dia,long spd){
+  if(act==1)
+    if(dia==1)
+      L6470_transfer(n,0x8b,3,spd);
+    else
+      L6470_transfer(n,0x8a,3,spd);
+  else
+    if(dia==1)
+      L6470_transfer(n,0x83,3,spd);
+    else
+      L6470_transfer(n,0x82,3,spd);
+}  
+void L6470_relesesw(int n,int act,int dia){
+  if(act==1)
+    if(dia==1)
+      L6470_transfer(n,0x9b,0,0);
+    else
+      L6470_transfer(n,0x9a,0,0);
+  else
+    if(dia==1)
+      L6470_transfer(n,0x93,0,0);
+    else
+      L6470_transfer(n,0x92,0,0);
+}
 void L6470_gohome(int n){
   L6470_transfer(n,0x70,0,0);
 }
-// void L6470_gomark(){
-//   L6470_transfer(0x78,0,0);
-// }
-// void L6470_resetpos(){
-//   L6470_transfer(0xd8,0,0);
-// }
+void L6470_gomark(int n){
+  L6470_transfer(n,0x78,0,0);
+}
+void L6470_resetpos(int n){
+  L6470_transfer(n,0xd8,0,0);
+}
 void L6470_resetdevice(int n){
   L6470_send_u(n,0x00);//nop命令
   L6470_send_u(n,0x00);
@@ -126,18 +124,18 @@ void L6470_resetdevice(int n){
   L6470_send_u(n,0x00);
   L6470_send_u(n,0xc0);
 }
-// void L6470_softstop(){
-//   L6470_transfer(0xb0,0,0);
-// }
+void L6470_softstop(int n){
+  L6470_transfer(n,0xb0,0,0);
+}
 void L6470_hardstop(int n){
   L6470_transfer(n,0xb8,0,0);
 }
 void L6470_hardstop_u(int n){
   L6470_transfer_u(n,0xb8,0,0);
 }
-// void L6470_softhiz(){
-//   L6470_transfer(0xa0,0,0);
-// }
+void L6470_softhiz(int n){
+  L6470_transfer(n,0xa0,0,0);
+}
 void L6470_hardhiz(int n){
   L6470_transfer(n,0xa8,0,0);
 }
@@ -199,7 +197,6 @@ void L6470_transfer_u(int n, int add,int bytes,long val){
 }
 /* send same data to n motors. */
 void L6470_send(int n, int add_or_val){
-  Serial.println(add_or_val,BIN);
   while(!digitalRead(PIN_BUSY)){
   } //BESYが解除されるまで待機
   digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
@@ -235,23 +232,21 @@ void L6470_send_u(int n, int *add_or_val){
   }
   digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
 }
-// void L6470_busydelay(long time){//BESYが解除されるまで待機
-//   while(!digitalRead(PIN_BUSY)){
-//   }
-//   delay(time);
-// }
-// long L6470_getparam(int add,int bytes){
-//   long val=0;
-//   int send_add = add | 0x20;
-//   L6470_send_u(send_add);
-//   for(int i=0;i<=bytes-1;i++){
-//     val = val << 8;
-//     digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
-//     val = val | SPI.transfer(0x00); // アドレスもしくはデータ送信。
-//     digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
-//   }
-//   return val;
-// }
+void L6470_getparam(long *val, int n,int add,int bytes){
+  for (int i = 0; i < n; i += 1) {
+    val[i] = 0;
+  }
+  int send_add = add | 0x20;
+  L6470_send_u(n,send_add);
+  for(int i=0;i<=bytes-1;i++){
+    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
+    for (int j = 0; j < n; j += 1) {
+      val[j] = val[j] << 8;
+      val[j] = val[j] | SPI.transfer(0x00); // アドレスもしくはデータ送信。
+    }
+      digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+  }
+}
 
 // void send1_L6470(int8_t x , int8_t y) {
 //   digitalWrite(10, LOW);

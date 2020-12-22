@@ -19,6 +19,8 @@ boolean err_flag = false;
 
 long stroke = 200*pow(2, 7); // steps per stroke
 
+long param[N];
+
 void setup()
 {
   delay(1000);
@@ -42,10 +44,10 @@ void setup()
   L6470_setup();  //L6470を設定
   delay(2000);
   
-  // MsTimer2::set(50, fulash);//シリアルモニター用のタイマー割り込み
+  MsTimer2::set(50, fulash);//シリアルモニター用のタイマー割り込み
   // MsTimer2::set(3000, func_timer);//overwrite用のタイマー割り込み
-  // MsTimer2::start();
-  // delay(2000);
+  MsTimer2::start();
+  delay(2000);
 
   // /* basic move */
   // L6470_goto(dist2pos(40*1.75));
@@ -57,11 +59,16 @@ void setup()
   //   // L6470_busydelay(250);
   // }
 
-  /* basic move for to*/
+  /* basic move for multi motors*/
   L6470_goto(N, dist2pos(40*1.75));
   for (int i = 0; i < 5; i += 1) {
     L6470_goto(N, dist2pos(40*0.75));
-    L6470_goto(N, dist2pos(40*1.75));
+    L6470_busydelay(1000);
+    if (i%2 == 0) {
+      L6470_goto(N, dist2pos(40*1.75));
+    } else {
+      L6470_goto(1, dist2pos(40*1.75));
+    }
   }
 
   // /* sample for encoder reset */
@@ -101,8 +108,8 @@ void loop(){
 
 void L6470_setup(){
 // スライダは1回転 40mm
-L6470_setparam_acc(N, 0x50); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
-L6470_setparam_dec(N, 0x50); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
+L6470_setparam_acc(N, 0x300); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
+L6470_setparam_dec(N, 0x300); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
 L6470_setparam_maxspeed(N, 0x60); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
 L6470_setparam_minspeed(N, 0x01); //[R, WS]最小速度default 0x000 (1+12bit) (0.238*val[step/s])
 L6470_setparam_fsspd(N, 0x3ff); //[R, WR]μステップからフルステップへの切替点速度default 0x027 (10bit) (15.25*val+7.63[step/s])
@@ -111,7 +118,7 @@ L6470_setparam_kvalrun(N, 0x50); //[R, WR]定速回転時励磁電圧default 0x2
 L6470_setparam_kvalacc(N, 0x50); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
 L6470_setparam_kvaldec(N, 0x50); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
 L6470_setparam_alareen(N, 0x70); // alarm enable for switch, stall detection
-L6470_setparam_stallth(N, 0x30); // 脱調検知の閾値 need tuning
+L6470_setparam_stallth(N, 0x05); // 脱調検知の閾値 need tuning
 
 L6470_setparam_stepmood(N, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
 }
@@ -150,12 +157,22 @@ long pos2ang(long position) {
 }
 
 void fulash(){
+  L6470_getparam_abspos(param, N);
   Serial.print("ABS_POS : ");
-  Serial.print( pos2dist(L6470_getparam_abspos()),DEC);
-  Serial.print(",  SPEED : ");
+  for (int i = 0; i < N; i += 1) {
+    Serial.print(pos2dist(param[i]),DEC);
+    Serial.print(",");
+  }
+  // Serial.print( pos2dist(L6470_getparam_abspos()),DEC);
+  L6470_getparam_speed(param, N);
+  Serial.print("  SPEED : ");
   Serial.print("0x");
-  Serial.print( L6470_getparam_speed(),HEX);
-  Serial.print(",  FLAG : ");
+  for (int i = 0; i < N; i += 1) {
+    Serial.print(param[i],HEX);
+    Serial.print(",");
+  }
+  // Serial.print( L6470_getparam_speed(),HEX);
+  Serial.print("  FLAG : ");
   for (int i=0; i<N; i+=1) {
     Serial.print(digitalRead(FLAG_PIN[i]));
   }
