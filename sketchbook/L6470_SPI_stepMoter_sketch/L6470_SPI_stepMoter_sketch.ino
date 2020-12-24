@@ -4,7 +4,7 @@
 // #include "L6470_commands_multi.ino"
 
 // number of motors
-#define N 2
+#define N 6
 
 // define pins
 #define PIN_SPI_MOSI 11
@@ -12,9 +12,9 @@
 #define PIN_SPI_SCK 13
 #define PIN_SPI_SS 10
 #define PIN_BUSY 9
-int FLAG_PIN[N] = {2,3}; // digital pins
-int RESET_PIN[N] = {14,15}; // analog pins
-int pos = 80;
+int FLAG_PIN[N] = {2,3,4,5,6,7}; // digital pins
+int RESET_PIN[N] = {14,15,16,17,18,19}; // analog pins
+int pos = -30;
 boolean err_flag = false;
 
 // parameters according to this machine environment
@@ -40,7 +40,7 @@ void setup()
   SPI.begin();
   SPI.setDataMode(SPI_MODE3);
   SPI.setBitOrder(MSBFIRST);
-  Serial.begin(9600);
+  Serial.begin(115200);
   digitalWrite(PIN_SPI_SS, HIGH);
  
   L6470_resetdevice(N); //reset all motors
@@ -64,11 +64,17 @@ void setup()
 
   /* basic move for multi motors*/
   L6470_goto(N, dist2pos(40));
-  for (int i = 0; i < 5; i += 1) {
-    long pos_array1[N] = {0, 40};dist2pos(N,pos_array1);
-    long pos_array2[N] = {40, 0};dist2pos(N,pos_array2);
-    L6470_goto(N, pos_array1);
-    L6470_goto(N, pos_array2);
+  for (int i = 0; i < 10; i += 1) {
+    long pos_array[N];
+    for (int j = 0; j < N; j += 1) {
+      if (j == i%N) {
+        pos_array[j] = 70;
+      } else {
+        pos_array[j] = 0;
+      }
+    }
+    dist2pos(N,pos_array);
+    L6470_goto(N, pos_array);
   }
 
   // /* sample for encoder reset */
@@ -118,7 +124,7 @@ L6470_setparam_kvalrun(N, 0x50); //[R, WR]定速回転時励磁電圧default 0x2
 L6470_setparam_kvalacc(N, 0x50); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
 L6470_setparam_kvaldec(N, 0x50); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
 L6470_setparam_alareen(N, 0x70); // alarm enable for switch, stall detection
-L6470_setparam_stallth(N, 0x07); // 脱調検知の閾値 need tuning
+L6470_setparam_stallth(N, 0x30); // 脱調検知の閾値 need tuning
 
 L6470_setparam_stepmood(N, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
 } 
@@ -152,7 +158,7 @@ void dist2pos(int n, long *distance) {
   }
 }
 long ang2pos(long angle) {
-  return ROT * (-angle) / 360;
+  return ROT * (angle) / 360;
 }
 void ang2pos(int n, long *angle) {
   for (int i = 0; i < n; i += 1) {
@@ -168,7 +174,7 @@ void pos2dist(int n, long *position) {
   }
 }
 long pos2ang(long position) {
-  return (-position) * 360 / ROT;
+  return (position) * 360 / ROT;
 }
 void pos2ang(int n, long *position) {
   for (int i = 0; i < n; i += 1) {

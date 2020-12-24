@@ -158,12 +158,12 @@ void L6470_hardhiz(int n){
 void L6470_getstatus(long *val, int n){
   L6470_send_u(n,0xd0);
   for(int i=0;i<=1;i++){
-    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
+    digitalWrite(PIN_SPI_SS, LOW);
     for (int j = 0; j < n; j += 1) {
       val[j] = val[j] << 8;
-      val[j] = val[j] | SPI.transfer(0x00); // アドレスもしくはデータ送信。
+      val[j] = val[j] | SPI.transfer(0x00);
     }
-    digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+    digitalWrite(PIN_SPI_SS, HIGH);
   }
 }
 
@@ -185,12 +185,6 @@ void L6470_transfer(int n, int add,int bytes,long val){
   if(bytes>=1){
     L6470_send(n, data[0]);
   }  
-  // for (int i = 0; i < n; i += 1) {
-  //   Serial.println("data");
-  //   for (int j = 0; j < 3; j += 1) {
-  //     Serial.println(data[j][i]);
-  //   }
-  // }
 }
 void L6470_transfer(int n, int add,int bytes,long *val){
   int data[3][n];
@@ -252,39 +246,39 @@ void L6470_transfer_u(int n, int add,int bytes,long *val){
 /* send same data to n motors. */
 void L6470_send(int n, int add_or_val){
   while(!digitalRead(PIN_BUSY)){
-  } //BESYが解除されるまで待機
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
-  for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val); // アドレスもしくはデータ送信
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    SPI.transfer(add_or_val);
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
 /* send different data to n motors. */
 void L6470_send(int n, int *add_or_val){
   while(!digitalRead(PIN_BUSY)){
-  } //BESYが解除されるまで待機
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
-  for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val[i]); // アドレスもしくはデータ送信
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    SPI.transfer(add_or_val[i]);
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
 
 /* send same data to n motors. */
 void L6470_send_u(int n, int add_or_val){
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
+  digitalWrite(PIN_SPI_SS, LOW);
   for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val); // アドレスもしくはデータ送信
+    SPI.transfer(add_or_val);
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
 /* send different data to n motors. */
 void L6470_send_u(int n, int *add_or_val){
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
+  digitalWrite(PIN_SPI_SS, LOW);
   for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val[i]); // アドレスもしくはデータ送信
+    SPI.transfer(add_or_val[i]);
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
 void L6470_getparam(long *val, int n,int add,int bytes){
   for (int i = 0; i < n; i += 1) {
@@ -293,61 +287,11 @@ void L6470_getparam(long *val, int n,int add,int bytes){
   int send_add = add | 0x20;
   L6470_send_u(n,send_add);
   for(int i=0;i<=bytes-1;i++){
-    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
+    digitalWrite(PIN_SPI_SS, LOW);
     for (int j = 0; j < n; j += 1) {
       val[j] = val[j] << 8;
-      val[j] = val[j] | SPI.transfer(0x00); // アドレスもしくはデータ送信。
+      val[j] = val[j] | SPI.transfer(0x00);
     }
-      digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+      digitalWrite(PIN_SPI_SS, HIGH); 
   }
 }
-
-// void send1_L6470(int8_t x , int8_t y) {
-//   digitalWrite(10, LOW);
-//   SPI.transfer(x);
-//   SPI.transfer(y);
-//   digitalWrite(10, HIGH);
-// }
-// void send2_L6470(int16_t x, int16_t y) {
-//   int8_t buf1[2];
-//   buf1[0] = x >> 8;
-//   buf1[1] = x & 0xff;
-//   int8_t buf2[2];
-//   buf2[0] = y >> 8;
-//   buf2[1] = y & 0xff;
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[0]);
-//   SPI.transfer(buf2[0]);
-//   digitalWrite(10, HIGH);
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[1]);
-//   SPI.transfer(buf2[1]);
-//   digitalWrite(10, HIGH);
-// }
-// void send3_L6470(int32_t x, int32_t y) {
-//   int8_t buf1[3];
-//   buf1[0] = x >> 16;
-//   buf1[1] = x >> 8;
-//   buf1[2] = x & 0xff;
-//   int8_t buf2[3];
-//   buf2[0] = y >> 16;
-//   buf2[1] = y >> 8;
-//   buf2[2] = y & 0xff;
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[0]);
-//   SPI.transfer(buf2[0]);
-//   digitalWrite(10, HIGH);
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[1]);
-//   SPI.transfer(buf2[1]);
-//   digitalWrite(10, HIGH);
-  
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[2]);
-//   SPI.transfer(buf2[2]);
-//   digitalWrite(10, HIGH);
-// }
