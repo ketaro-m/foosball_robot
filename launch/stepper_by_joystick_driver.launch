@@ -1,0 +1,10 @@
+<launch>
+  <arg name="port" default="/dev/ttyUSB0" />
+
+  <!-- run rosserial node -->
+  <node pkg="rosserial_python" type="serial_node.py" name="serial_node"
+        args="$(arg port)" output="screen"/>
+
+  <node pkg="joy" type="joy_node" name="joy_node" />
+
+</launch>
