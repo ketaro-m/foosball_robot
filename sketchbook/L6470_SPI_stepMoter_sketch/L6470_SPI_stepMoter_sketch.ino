@@ -18,7 +18,7 @@ ros::NodeHandle nh;
 #define PIN_SPI_SS 53
 #define PIN_BUSY 9
 const int FLAG_PIN[N] = {2,3,4,5,6,7}; // digital pins
-const int RESET_PIN[N] = {14,15,16,17,18,19}; // analog pins
+const int RESET_PIN[N] = {54,55,56,57,58,59}; // analog pins A0,...,A5 
 int dist = 20;
 int ang = 90;
 boolean err_flag = false;
@@ -31,42 +31,42 @@ int STROKE = 40; // stroke[mm] per 1 rotation
 long param[N]; // array to get and store register values such as abs_pos, speed, etc.
 
 // sensor_msgs::Joy joy_msg;
-// void stepper_cb(const sensor_msgs::Joy& msg);
-// ros::Subscriber<sensor_msgs::Joy> stepper_sub("joy", stepper_cb);
+void stepper_cb(const sensor_msgs::Joy& msg);
+ros::Subscriber<sensor_msgs::Joy> stepper_sub("joy", stepper_cb);
 std_msgs::Int8MultiArray stepper_msg;
 ros::Publisher stepper_pub("stepper", &stepper_msg);
 
 
 void stepper_setup() {
-  stepper_msg.data_length = N*2;
-  stepper_msg.data = (int8_t *)malloc(sizeof(int8_t)*N*2);
-  for (int i = 0; i < N*2; i += 1) {
+  stepper_msg.data_length = N*3;
+  stepper_msg.data = (int8_t *)malloc(sizeof(int8_t)*N*3);
+  for (int i = 0; i < N*3; i += 1) {
     stepper_msg.data[i] = 0;
   }
 
-  // nh.subscribe(stepper_sub);
+  nh.subscribe(stepper_sub);
   nh.advertise(stepper_pub);
 }
 
-
+/* publish the motors' state [abs_pos * 6, error_flag * 6, reset_pin * 6] */
 void stepper_publish_loop() {
   L6470_getparam_abspos(param, N);
   for (int i = 0; i < N; i += 1) {
     stepper_msg.data[i] = pos2ang(param[i]);
+    stepper_msg.data[i+N] = digitalRead(FLAG_PIN[i]);
+    stepper_msg.data[i+N*2] = digitalRead(RESET_PIN[i]);
   }
-  for (int i = N; i < N*2; i += 1) {
-    stepper_msg.data[i] = digitalRead(FLAG_PIN[i]);
-  }
+
   stepper_pub.publish(&stepper_msg);
 }
 
 int abs_pos = 0;
 /* subscribe joy and control stepper motors */
-// void stepper_cb(const sensor_msgs::Joy& msg) {
-//   long rel_pos = msg.axes[0]*90 - abs_pos;
-//   abs_pos = msg.axes[0]*90;
-//   L6470_goto(1,ang2pos(rel_pos));
-// }
+void stepper_cb(const sensor_msgs::Joy& msg) {
+  // long rel_pos = msg.axes[0]*90 - abs_pos;
+  // abs_pos = msg.axes[0]*90;
+  // L6470_goto(1,ang2pos(rel_pos));
+}
 
 void setup()
 {
@@ -99,56 +99,6 @@ void setup()
   // MsTimer2::set(50, fulash);//シリアルモニター用のタイマー割り込み
   // MsTimer2::set(3000, func_timer);//overwrite用のタイマー割り込み
   // MsTimer2::start();
-
-  // /* basic move */
-  // L6470_goto(dist2pos(40*1.75));
-  // L6470_busydelay(250);
-  // for (int i = 0; i < 5; i += 1) {
-  //   L6470_goto(dist2pos(40*0.75));
-  //   // L6470_busydelay(250);
-  //   L6470_goto(dist2pos(40*1.75));
-  //   // L6470_busydelay(250);
-  // }
-
-  // /* basic move for multi motors*/
-  // L6470_goto(N, dist2pos(40));
-  // for (int i = 0; i < 10; i += 1) {
-  //   long pos_array[N];
-  //   for (int j = 0; j < N; j += 1) {
-  //     if (j == i%N) {
-  //       pos_array[j] = 70;
-  //     } else {
-  //       pos_array[j] = 0;
-  //     }
-  //   }
-  //   dist2pos(N,pos_array);
-  //   L6470_goto(N, pos_array);
-  // }
-
-  // /* sample for encoder reset */
-  // L6470_goto(dist2pos(80));
-  // L6470_busydelay(1000);
-  // L6470_goto(dist2pos(40));
-  // L6470_busydelay(1000);
-
-  // /* sample for gountil */
-  // L6470_setparam_mark(ang2pos(-300));
-  // Serial.print("ABS_POS : ");
-  // Serial.print(pos2ang(L6470_getparam_abspos()),DEC);
-  // Serial.print("  MARK : ");
-  // Serial.println(pos2ang(L6470_getparam_mark()),DEC);
-  // L6470_gountil(0, 1, 800); // if act==1, mark->abs_pos, if act==0, abs_pos->0
-  // L6470_busydelay(2000);
-  // Serial.print("ABS_POS : ");
-  // Serial.print(pos2ang(L6470_getparam_abspos()),DEC);
-  // Serial.print("  MARK : ");
-  // Serial.println(pos2ang(L6470_getparam_mark()),DEC);
-  // L6470_gomark();
-  
-
-
-  // L6470_gohome(N);
-  // L6470_hardhiz(N);
 }
 
 unsigned long state_timer = 0;
@@ -210,71 +160,40 @@ L6470_setparam_ocdth(N, 0xf);
 
 L6470_setparam_stepmood(N, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
 } 
-
-// void func_on() {
-//   noInterrupts();
-//   L6470_setparam_abspos(ang2pos(0));
-//   interrupts();
-// }
 /* sample for overwrite.*/
-long pos_array[N];
-void func_timer() {
-  if (!err_flag) {
-    L6470_hardstop_u(N);
-    for (int i = 0; i < N; i += 1) {
-      if (i < 3) {
-        pos_array[i] = dist2pos(dist);
-      } else {
-        pos_array[i] = ang2pos(ang);
-      }
-    }
-    // dist2pos(N,pos_array);
-    L6470_goto_u(N, pos_array);
-    // L6470_goto_u(N, dist2pos(pos));
-    ang *= -1;
-    dist *= -1;
-    delay(100);
-  }
-}
+// long pos_array[N];
+// void func_timer() {
+//   if (!err_flag) {
+//     L6470_hardstop_u(N);
+//     for (int i = 0; i < N; i += 1) {
+//       if (i < 3) {
+//         pos_array[i] = dist2pos(dist);
+//       } else {
+//         pos_array[i] = ang2pos(ang);
+//       }
+//     }
+//     // dist2pos(N,pos_array);
+//     L6470_goto_u(N, pos_array);
+//     // L6470_goto_u(N, dist2pos(pos));
+//     ang *= -1;
+//     dist *= -1;
+//     delay(100);
+//   }
+// }
 
 /* functions to change distance[mm] or angle[degree] to steps(pos)*/
 long dist2pos(long distance) {
-  // if (distance > 90) {
-  //   distance = 90;
-  // } else if (distance < 0) {
-  //   distance = 0;
-  // }
   return ROT * distance / STROKE;
 }
-// void dist2pos(int n, long *distance) {
-//   for (int i = 0; i < n; i += 1) {
-//     distance[i] = dist2pos(distance[i]);
-//   }
-// }
 long ang2pos(long angle) {
   return ROT * (angle) / 360;
 }
-// void ang2pos(int n, long *angle) {
-//   for (int i = 0; i < n; i += 1) {
-//     angle[i]  = ang2pos(angle[i]);
-//   }
-// }
 long pos2dist(long position) {
   return position * STROKE / ROT;
 }
-// void pos2dist(int n, long *position) {
-//   for (int i = 0; i < n; i += 1) {
-//     position[i] = pos2dist(position[i]);
-//   }
-// }
 long pos2ang(long position) {
   return (position) * 360 / ROT;
 }
-// void pos2ang(int n, long *position) {
-//   for (int i = 0; i < n; i += 1) {
-//     position[i] = pos2ang(position[i]);
-//   }
-// }
 void distang2pos(long *distang) {
   for (int i = 0; i < N; i += 1) {
     if (i < 3) {
