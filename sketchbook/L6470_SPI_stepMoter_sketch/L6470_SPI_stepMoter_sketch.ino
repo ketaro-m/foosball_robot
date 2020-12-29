@@ -1,6 +1,6 @@
 #include <SPI.h>
-#include <MsTimer2.h>
-#include <math.h>
+// #include <MsTimer2.h>
+// #include <math.h>
 #include <ros.h>
 #include <sensor_msgs/Joy.h> // Joy stick
 #include <std_msgs/Int8MultiArray.h> // to publish pin values
@@ -12,31 +12,17 @@ ros::NodeHandle nh;
 #define N 6
 
 // define pins
-#define PIN_SPI_MOSI 11
-#define PIN_SPI_MISO 12
-#define PIN_SPI_SCK 13
-#define PIN_SPI_SS 10
+#define PIN_SPI_MOSI 51
+#define PIN_SPI_MISO 50
+#define PIN_SPI_SCK 52
+#define PIN_SPI_SS 53
 #define PIN_BUSY 9
-int FLAG_PIN[N] = {2,3,4,5,6,7}; // digital pins
-int RESET_PIN[N] = {14,15,16,17,18,19}; // analog pins
+const int FLAG_PIN[N] = {2,3,4,5,6,7}; // digital pins
+const int RESET_PIN[N] = {14,15,16,17,18,19}; // analog pins
 int dist = 20;
 int ang = 90;
 boolean err_flag = false;
 
-
-// #include <std_msgs/Int16.h>
-// std_msgs::Int16 switch_msg; 
-// ros::Publisher arduino_pub("arduino", &switch_msg);
-// void pin_setup()
-// {
-//   switch_msg.data = 0;
-//   nh.advertise(arduino_pub);
-// }
-// void pin_loop()
-// {
-//   switch_msg.data = digitalRead(RESET_PIN[0]);
-//   arduino_pub.publish(&switch_msg);
-// }
 
 // parameters according to this machine environment
 int ROT = 200*pow(2, 7); // steps per 1 rotation
@@ -45,12 +31,10 @@ int STROKE = 40; // stroke[mm] per 1 rotation
 long param[N]; // array to get and store register values such as abs_pos, speed, etc.
 
 // sensor_msgs::Joy joy_msg;
-void stepper_cb(const sensor_msgs::Joy& msg);
-ros::Subscriber<sensor_msgs::Joy> stepper_sub("joy", stepper_cb);
+// void stepper_cb(const sensor_msgs::Joy& msg);
+// ros::Subscriber<sensor_msgs::Joy> stepper_sub("joy", stepper_cb);
 std_msgs::Int8MultiArray stepper_msg;
 ros::Publisher stepper_pub("stepper", &stepper_msg);
-// std_msgs::Int16MultiArray pin_msg; 
-// ros::Publisher pin_pub("stepper/pin", &pin_msg);
 
 
 void stepper_setup() {
@@ -59,15 +43,9 @@ void stepper_setup() {
   for (int i = 0; i < N*2; i += 1) {
     stepper_msg.data[i] = 0;
   }
-  // pin_msg.data_length = N;
-  // pin_msg.data = (int16_t *)malloc(sizeof(int16_t)*N);
-  // for (int i = 0; i < N; i += 1) {
-  //   pin_msg.data[i] = 0;
-  // }
 
   // nh.subscribe(stepper_sub);
   nh.advertise(stepper_pub);
-  // nh.advertise(pin_pub);
 }
 
 
@@ -80,23 +58,21 @@ void stepper_publish_loop() {
     stepper_msg.data[i] = digitalRead(FLAG_PIN[i]);
   }
   stepper_pub.publish(&stepper_msg);
-  // pin_pub.publish(&pin_msg);
 }
 
 int abs_pos = 0;
 /* subscribe joy and control stepper motors */
-void stepper_cb(const sensor_msgs::Joy& msg) {
-  long rel_pos = msg.axes[0]*90 - abs_pos;
-  abs_pos = msg.axes[0]*90;
-  L6470_goto(1,ang2pos(rel_pos));
-}
+// void stepper_cb(const sensor_msgs::Joy& msg) {
+//   long rel_pos = msg.axes[0]*90 - abs_pos;
+//   abs_pos = msg.axes[0]*90;
+//   L6470_goto(1,ang2pos(rel_pos));
+// }
 
 void setup()
 {
   // delay(1000);
   nh.initNode();
   stepper_setup();
-  // pin_setup();
 
   pinMode(PIN_SPI_MOSI, OUTPUT);
   pinMode(PIN_SPI_MISO, INPUT);
@@ -187,7 +163,6 @@ void loop(){
 
   if ((now - state_timer) > 100) {
     stepper_publish_loop();
-    // pin_loop();
     state_timer = now;
   }
   nh.spinOnce();
@@ -271,59 +246,77 @@ long dist2pos(long distance) {
   // }
   return ROT * distance / STROKE;
 }
-void dist2pos(int n, long *distance) {
-  for (int i = 0; i < n; i += 1) {
-    distance[i] = dist2pos(distance[i]);
-  }
-}
+// void dist2pos(int n, long *distance) {
+//   for (int i = 0; i < n; i += 1) {
+//     distance[i] = dist2pos(distance[i]);
+//   }
+// }
 long ang2pos(long angle) {
   return ROT * (angle) / 360;
 }
-void ang2pos(int n, long *angle) {
-  for (int i = 0; i < n; i += 1) {
-    angle[i]  = ang2pos(angle[i]);
-  }
-}
+// void ang2pos(int n, long *angle) {
+//   for (int i = 0; i < n; i += 1) {
+//     angle[i]  = ang2pos(angle[i]);
+//   }
+// }
 long pos2dist(long position) {
   return position * STROKE / ROT;
 }
-void pos2dist(int n, long *position) {
-  for (int i = 0; i < n; i += 1) {
-    position[i] = pos2dist(position[i]);
-  }
-}
+// void pos2dist(int n, long *position) {
+//   for (int i = 0; i < n; i += 1) {
+//     position[i] = pos2dist(position[i]);
+//   }
+// }
 long pos2ang(long position) {
   return (position) * 360 / ROT;
 }
-void pos2ang(int n, long *position) {
-  for (int i = 0; i < n; i += 1) {
-    position[i] = pos2ang(position[i]);
+// void pos2ang(int n, long *position) {
+//   for (int i = 0; i < n; i += 1) {
+//     position[i] = pos2ang(position[i]);
+//   }
+// }
+void distang2pos(long *distang) {
+  for (int i = 0; i < N; i += 1) {
+    if (i < 3) {
+      distang[i] = dist2pos(distang[i]);
+    } else {
+      distang[i] = ang2pos(distang[i]);
+    }
+  }
+}
+void pos2distang(long *position) {
+  for (int i = 0; i < N; i += 1) {
+    if (i < 3) {
+      position[i] = pos2dist(position[i]);
+    } else {
+      position[i] = pos2ang(position[i]);
+    }
   }
 }
 
-void fulash(){
-  L6470_getparam_abspos(param, N);
-  Serial.print("ABS_POS : ");
-  for (int i = 0; i < N; i += 1) {
-    Serial.print(pos2dist(param[i]),DEC);
-    Serial.print(",");
-  }
-  // Serial.print( pos2dist(L6470_getparam_abspos()),DEC);
-  L6470_getparam_speed(param, N);
-  Serial.print("  SPEED : ");
-  for (int i = 0; i < N; i += 1) {
-    Serial.print("0x");
-    Serial.print(param[i],HEX);
-    Serial.print(",");
-  }
-  // Serial.print( L6470_getparam_speed(),HEX);
-  Serial.print("  FLAG : ");
-  for (int i=0; i<N; i+=1) {
-    Serial.print(digitalRead(FLAG_PIN[i]));
-  }
-  Serial.print(",  RESET : ");
-  for (int i=0; i<N; i+=1) {
-    Serial.print(digitalRead(RESET_PIN[i]));
-  }
-  Serial.println();
-}
+// void fulash(){
+//   L6470_getparam_abspos(param, N);
+//   Serial.print("ABS_POS : ");
+//   for (int i = 0; i < N; i += 1) {
+//     Serial.print(pos2dist(param[i]),DEC);
+//     Serial.print(",");
+//   }
+//   // Serial.print( pos2dist(L6470_getparam_abspos()),DEC);
+//   L6470_getparam_speed(param, N);
+//   Serial.print("  SPEED : ");
+//   for (int i = 0; i < N; i += 1) {
+//     Serial.print("0x");
+//     Serial.print(param[i],HEX);
+//     Serial.print(",");
+//   }
+//   // Serial.print( L6470_getparam_speed(),HEX);
+//   Serial.print("  FLAG : ");
+//   for (int i=0; i<N; i+=1) {
+//     Serial.print(digitalRead(FLAG_PIN[i]));
+//   }
+//   Serial.print(",  RESET : ");
+//   for (int i=0; i<N; i+=1) {
+//     Serial.print(digitalRead(RESET_PIN[i]));
+//   }
+//   Serial.println();
+// }
