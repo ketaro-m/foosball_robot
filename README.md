@@ -32,7 +32,7 @@ $ rosrun uvc_camera uvc_camera_node _device:=/dev/video1
 $ rosrun camera_calibration cameracalibrator.py --size 7x6 --square 0.027 image:=/image_raw
 ```
 
-<img width="600" alt="cameracallibrator.png" src="https://github.com/ketaro-m/foosball_robot/blob/camera/img/cameracallibrator.png"> 
+<img width="600" alt="cameracallibrator.png" src="https://github.com/ketaro-m/foosball_robot/blob/camera/img/cameracalibrator.png"> 
 
 Then extract the gz file and place the yaml file in the appropriate directory.
 
