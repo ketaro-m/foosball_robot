@@ -23,12 +23,18 @@ int dist = 20;
 int ang = 90;
 boolean err_flag = false;
 
+#define LED_PIN 10
+int pin = 0;
+
 
 // parameters according to this machine environment
 int ROT = 200*pow(2, 7); // steps per 1 rotation
 int STROKE = 40; // stroke[mm] per 1 rotation
 
 long param[N]; // array to get and store register values such as abs_pos, speed, etc.
+/* position array to control motors */
+long pos[N] = {0, 0, 0, 0, 0, 0};
+long pos_copy[N] = {0, 0, 0, 0, 0, 0}; // copy for motor command because distang2pos rewrites array itself
 
 // sensor_msgs::Joy joy_msg;
 void stepper_cb(const sensor_msgs::Joy& msg);
@@ -38,9 +44,9 @@ ros::Publisher stepper_pub("stepper", &stepper_msg);
 
 
 void stepper_setup() {
-  stepper_msg.data_length = N*3;
-  stepper_msg.data = (int8_t *)malloc(sizeof(int8_t)*N*3);
-  for (int i = 0; i < N*3; i += 1) {
+  stepper_msg.data_length = N*4;
+  stepper_msg.data = (int8_t *)malloc(sizeof(int8_t)*N*4);
+  for (int i = 0; i < N*4; i += 1) {
     stepper_msg.data[i] = 0;
   }
 
@@ -51,28 +57,91 @@ void stepper_setup() {
 /* publish the motors' state [abs_pos * 6, error_flag * 6, reset_pin * 6] */
 void stepper_publish_loop() {
   L6470_getparam_abspos(param, N);
+  pos2distang(param);
   for (int i = 0; i < N; i += 1) {
-    stepper_msg.data[i] = pos2ang(param[i]);
+    stepper_msg.data[i] = param[i];
     stepper_msg.data[i+N] = digitalRead(FLAG_PIN[i]);
     stepper_msg.data[i+N*2] = digitalRead(RESET_PIN[i]);
   }
-
   stepper_pub.publish(&stepper_msg);
 }
 
-int abs_pos = 0;
+/* coefficients for motor commands from joy inputs. */
+float ang_alpha = 180;
+float dist_alpha = 80;
+int motor_index[2] = {0, 1}; // motor now operating
+int button_pre[2] = {0, 0}; // button [left, right] in the pre time to avoid double count of one press
+
 /* subscribe joy and control stepper motors */
 void stepper_cb(const sensor_msgs::Joy& msg) {
-  // long rel_pos = msg.axes[0]*90 - abs_pos;
-  // abs_pos = msg.axes[0]*90;
-  // L6470_goto(1,ang2pos(rel_pos));
+
+  // pin = (pin+1)%2; // 1->0,0->1
+  // digitalWrite(LED_PIN, pin);
+
+  /* change operating motors according to the LR buttons. */
+  if (button_pre[0] == 0 && msg.buttons[4] == 1) {
+    button_pre[0] = 1;
+    motor_index_left();
+  }
+  if (button_pre[0] == 1 && msg.buttons[4] == 0) {
+    button_pre[0] = 0;
+  }
+  if (button_pre[1] == 0 && msg.buttons[5] == 1) {
+    button_pre[1] = 1;
+    motor_index_right();
+  }
+  if (button_pre[1] == 1 && msg.buttons[5] == 0) {
+    button_pre[1] = 0;
+  }
+
+  pos[motor_index[0]] = pos_copy[motor_index[0]] = max(min(pos[motor_index[0]] + msg.axes[1]*dist_alpha, 90), 0);
+  pos[motor_index[1]] = pos_copy[motor_index[1]] = max(min(pos[motor_index[1]] + msg.axes[4]*dist_alpha, 90), 0);
+  pos[motor_index[0]+3] = pos_copy[motor_index[0]+3] = max(min(pos[motor_index[0]+3] - msg.axes[0]*ang_alpha, 180), 0);
+  pos[motor_index[1]+3] = pos_copy[motor_index[1]+3] = max(min(pos[motor_index[1]+3] - msg.axes[3]*ang_alpha, 180), 0); 
+  for (int i = 0; i < N; i += 1) {
+    stepper_msg.data[i+N*3] = pos[i];
+  }
 }
+
+/* functions to change motor indexes.*/
+void motor_index_left() {
+  switch (motor_index[0]) {
+  case 0:
+    if (motor_index[1] == 2) {
+      motor_index[1] = 1;
+    }
+    break;
+  case 1:
+    motor_index[0] = 0;
+    break;
+  default:
+    break;
+  }
+}
+void motor_index_right() {
+  switch (motor_index[1]) {
+  case 2:
+    if (motor_index[0] == 0) {
+      motor_index[0] = 1;
+    }
+    break;
+  case 1:
+    motor_index[1] = 2;
+    break;
+  default:
+    break;
+  }
+}
+
 
 void setup()
 {
   // delay(1000);
   nh.initNode();
   stepper_setup();
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, 0);
 
   pinMode(PIN_SPI_MOSI, OUTPUT);
   pinMode(PIN_SPI_MISO, INPUT);
@@ -101,50 +170,71 @@ void setup()
   // MsTimer2::start();
 }
 
-unsigned long state_timer = 0;
+unsigned long publish_timer = 0;
+unsigned long motor_timer = 0;
 void loop(){
-  // if (!digitalRead(ERROR_PIN[0])) {
-  //   L6470_hardstop_u();
-  //   err_flag = true;
-  // } else {
-  //   err_flag = false;
-  // }
   unsigned long now = millis();
 
-  if ((now - state_timer) > 100) {
+  if ((now - publish_timer) > 100) {
     stepper_publish_loop();
-    state_timer = now;
+    publish_timer = now;
+  }
+  if ((now - motor_timer) > 100) {
+    distang2pos(pos_copy);
+    // L6470_hardstop_u(N);
+    L6470_goto_u(N, pos_copy);
+    memcpy(pos_copy, pos, sizeof(pos));
+    motor_timer = now;
   }
   nh.spinOnce();
+  delay(1);
+
+  // boolean reset_flag = false;
+  // for (int i = 0; i < N; i += 1) {
+  //   if (!digitalRead[RESET_PIN[i]]) {
+  //     reset_flag = true;
+  //     pos[i] = 0;
+  //     pos_copy[i] = 0;
+  //   }
+  // }
+  // if (reset_flag) {
+  //   distang2pos(pos_copy);
+  //   L6470_setparam_abspos(N, pos_copy);
+  //   memcpy(pos_copy, pos, sizeof(pos));
+  // }
+  
+
+  // pin = (pin+1)%2; // 1->0,0->1
+  // digitalWrite(LED_PIN, pin);
 
   /* basic move for multi motors*/
-  // L6470_goto(N, dist2pos(40));
-  for (int i = 0; i < 10; i += 1) {
-    long pos_array[N];
-    for (int j = 0; j < N; j += 1) {
-      if (j == i%N && j >= 3) {
-        pos_array[j] = ang2pos(180);
-      } else {
-        pos_array[j] = 0;
-      }
-    }
-    // dist2pos(N,pos_array);
-    L6470_goto(N, pos_array);
-  }
-  L6470_goto(N, ang2pos(30));
-  L6470_hardhiz(N);
-  L6470_busydelay(2000);
+  // L6470_goto(N, ang2pos(-45));
+  // for (int i = 0; i < 10; i += 1) {
+  //   long pos_array[N];
+  //   for (int j = 0; j < N; j += 1) {
+  //     if (j == i%N && j >= 3) {
+  //       pos_array[j] = ang2pos(180);
+  //     } else {
+  //       pos_array[j] = 0;
+  //     }
+  //   }
+  //   // dist2pos(N,pos_array);
+  //   L6470_goto(N, pos_array);
+  // }
+  // L6470_goto(N, ang2pos(45));
+  // L6470_hardhiz(N);
+  // L6470_busydelay(2000);
 }
 
 /* setup all motors. */
 void L6470_setup(){
-long acc[N] = {0x500, 0x500, 0x500, 0x200, 0x200, 0x200};
-long dec[N] = {0x500, 0x500, 0x500, 0x200, 0x200, 0x200};
-long maxspeed[N] = {0x100, 0x100, 0x100, 0x60, 0x60, 0x60};
-long kvalhold[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
-long kvalrun[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
-long kvalacc[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
-long kvaldec[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
+long acc[N] = {0x200, 0x200, 0x200, 0x300, 0x300, 0x300};
+long dec[N] = {0x200, 0x200, 0x200, 0x300, 0x300, 0x300};
+long maxspeed[N] = {0x100, 0x100, 0x100, 0x100, 0x100, 0x100};
+long kvalhold[N] = {0x50, 0x50, 0x50, 0xc0, 0xc0, 0xc0};
+long kvalrun[N] = {0x80, 0x80, 0x80, 0xd0, 0xd0, 0xd0};
+long kvalacc[N] = {0x80, 0x80, 0x80, 0xd0, 0xd0, 0xd0};
+long kvaldec[N] = {0x80, 0x80, 0x80, 0xd0, 0xd0, 0xd0};
 L6470_setparam_acc(N, acc); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
 L6470_setparam_dec(N, dec); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
 L6470_setparam_maxspeed(N, maxspeed); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
@@ -155,7 +245,7 @@ L6470_setparam_kvalrun(N, kvalrun); //[R, WR]定速回転時励磁電圧default 
 L6470_setparam_kvalacc(N, kvalacc); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
 L6470_setparam_kvaldec(N, kvaldec); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
 L6470_setparam_alareen(N, 0x70); // alarm enable for switch, stall detection
-L6470_setparam_stallth(N, 0xf0); // 脱調検知の閾値 need tuning
+L6470_setparam_stallth(N, 0x10); // 脱調検知の閾値 need tuning
 L6470_setparam_ocdth(N, 0xf);
 
 L6470_setparam_stepmood(N, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 

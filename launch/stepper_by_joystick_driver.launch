@@ -5,6 +5,9 @@
   <node pkg="rosserial_python" type="serial_node.py" name="serial_node"
         args="$(arg port)" output="screen"/>
 
-  <node pkg="joy" type="joy_node" name="joy_node" />
+  <node pkg="joy" type="joy_node" name="joy_node" >
+    <param name="coalesce_interval" value="0.1" />
+    <param name="autorepeat_rate" value="10" />
+  </node>
 
 </launch>
