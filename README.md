@@ -21,7 +21,7 @@ description here...
 - [How to Calibrate a Monocular Camera](http://wiki.ros.org/camera_calibration/Tutorials/MonocularCalibration)
 
 
-First, download the checker board ([check_7x6_27mm.pdf](http://wiki.ros.org/turtlebot_kinect_arm_calibration/Tutorials/CalibratingKinectToTurtleBotArm?action=AttachFile&do=view&target=check_7x6_27mm.pdf)) and run the calibration program. Move the checker board in the camera view.
+First, download the checker board ([check_7x6_27mm.pdf](http://wiki.ros.org/turtlebot_kinect_arm_calibration/Tutorials/CalibratingKinectToTurtleBotArm?action=AttachFile&do=view&target=check_7x6_27mm.pdf)) and run the calibration program. Move the checker board around in the camera view.
 
 ```bash
 $ ls /dev/ | grep video # check the device name
@@ -31,6 +31,8 @@ $ roscore
 $ rosrun uvc_camera uvc_camera_node _device:=/dev/video1
 $ rosrun camera_calibration cameracalibrator.py --size 7x6 --square 0.027 image:=/image_raw
 ```
+
+<img width="600" alt="cameracallibrator.png" src="https://github.com/ketaro-m/foosball_robot/blob/camera/img/cameracallibrator.png"> 
 
 Then extract the gz file and place the yaml file in the appropriate directory.
 
@@ -56,5 +58,8 @@ $ rqt_image_view
 
 or run this launch file (yet, need to modify the absolute path to camera.yaml in line 4)
 ```
-$ roslaunch (path to launch)/calibration_demo.launch
+$ roslaunch launch/calibration_demo.launch
 ```
+
+<img width="600" alt="image_raw.png" src="https://github.com/ketaro-m/foosball_robot/blob/camera/img/image_raw.png"> 
+<img width="600" alt="image_rect_color.png" src="https://github.com/ketaro-m/foosball_robot/blob/camera/img/image_rect_color.png"> 
