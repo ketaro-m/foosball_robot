@@ -1,6 +1,7 @@
 /* Multiple motors' control commands by daisy chain connected L6470 */
 
 void L6470_setparam_abspos(int n, long val){L6470_transfer(n,0x01,3,val);}
+void L6470_setparam_abspos(int n, long* val){L6470_transfer(n,0x01,3,val);}
 void L6470_setparam_elpos(int n, long val){L6470_transfer(n,0x02,2,val);}
 void L6470_setparam_mark(int n, long val){L6470_transfer(n,0x03,3,val);}
 void L6470_setparam_acc(int n, long val){L6470_transfer(n,0x05,2,val);}
