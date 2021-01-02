@@ -42,9 +42,7 @@ $ rosrun uvc_camera uvc_camera_node _device:=/dev/video1
 $ rosrun camera_calibration cameracalibrator.py --size 7x6 --square 0.027 image:=/image_raw
 ```
 
-<img width="400" alt="cameracallibrator.png" src="https://user-images.githubusercontent.com/52503908/103461142-754acb80-4d5f-11eb-9abd-8c4442b3476c.png"> 
-<br />
-<br />
+<img width="450" alt="cameracallibrator.png" src="https://user-images.githubusercontent.com/52503908/103461142-754acb80-4d5f-11eb-9abd-8c4442b3476c.png"> 
 
 Then extract the gz file and place the yaml file in the appropriate directory.
 
@@ -74,10 +72,7 @@ or run this launch file (yet, need to modify the absolute path to camera.yaml in
 $ roslaunch launch/calibration_demo.launch
 ```
 
-<img width="300" alt="image_raw.png" src="https://user-images.githubusercontent.com/52503908/103461149-81cf2400-4d5f-11eb-9fa3-825d1fed25ae.png">
-<img width="300" alt="image_rect_color.png" src="https://user-images.githubusercontent.com/52503908/103461153-84317e00-4d5f-11eb-87c3-0e944ffca398.png"> 
-<br />
-<br />
+<img width="350" alt="image_raw.png" src="https://user-images.githubusercontent.com/52503908/103461149-81cf2400-4d5f-11eb-9fa3-825d1fed25ae.png"><img width="350" alt="image_rect_color.png" src="https://user-images.githubusercontent.com/52503908/103461153-84317e00-4d5f-11eb-87c3-0e944ffca398.png"> 
 
 # 2. Ball Tracking
 
@@ -95,7 +90,6 @@ Fill these values in `scripts/hsv.py` and `scripts/track_ball_demo.py`.
 ```Python
 field_area = [[33, 50], [605, 405]] # [[top-left x,y], [bottom-right x, y]]
 ```
-<br />
 
 ### 2. Optimize HSV value
 
@@ -108,7 +102,6 @@ $ python scripts/hsv.py [image file name]
 Click the ball in the "hsv" image window, and check the 
 
 <img width="1000" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103461145-7c71d980-4d5f-11eb-9089-f0d71ea11f1a.png"> 
-<br />
 <br />
 
 Lastly, to check if the ball is correctly tracked, fill the hsv_lower and hsv_upper values obtained above and run `scripts/track_ball_demo.py`. Looking at the result, you might have to modify hsv values and filter sizes of image processings.
@@ -129,7 +122,7 @@ $ roslaunch launch/track_ball.launch
 $ python scripts/detect_ball_demo.py
 ```
 
-<img width="500" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103461075-c1494080-4d5e-11eb-8fd4-255972b20b75.gif"> 
+<img width="600" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103461075-c1494080-4d5e-11eb-8fd4-255972b20b75.gif"> 
 <br />
 <br />
 
