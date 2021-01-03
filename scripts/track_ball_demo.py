@@ -26,7 +26,7 @@ class cvBridgeDemo:
         global field_contour
         self.field = field_contour
         self.stencil_flag = False # not to make stencil more than once
-        self.rects = []
+        self.centers = []
         self.node_name = "cv_bridge_demo"
         rospy.init_node(self.node_name)
         rospy.on_shutdown(self.cleanup)
@@ -42,7 +42,7 @@ class cvBridgeDemo:
 
         self.process_image(input_image, True)
 
-        print(self.rects)
+        print(self.circles)
         cv2.waitKey(1)
 
     def process_image(self, image, debug=False):
@@ -98,19 +98,21 @@ class cvBridgeDemo:
         #     cv2.imshow("make contours", display)   
 
         # make region
-        rects = []
+        circles = []
         for contour in contours:
-            approx = cv2.convexHull(contour)
-            rect = cv2.boundingRect(approx)
-            rects.append(rect)
+            (x,y),radius = cv2.minEnclosingCircle(contour)
+            center = (int(x),int(y))
+            radius = int(radius)
+            circles.append({"center":center, "radius":radius})
 
         if debug:
             display=image.copy()
-            for rect in rects:
-                cv2.rectangle(display, (rect[0], rect[1]), (rect[0]+rect[2], rect[1]+rect[3]), (0, 0, 255), thickness=3)
+            cv2.rectangle(display, tuple(field_area[0]),tuple(field_area[1]), (0, 255, 0))
+            for circle in circles:
+                cv2.circle(display,circle["center"],circle["radius"],(0,0,255),2)
             cv2.imshow("ball region", display)   
 
-        self.rects = rects
+        self.circles = circles
 
     def cleanup(self):
         cv2.destroyAllWindows()   
