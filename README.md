@@ -72,7 +72,7 @@ or run this launch file (yet, need to modify the absolute path to camera.yaml in
 $ roslaunch launch/calibration_demo.launch
 ```
 
-<img width="350" alt="image_raw.png" src="https://user-images.githubusercontent.com/52503908/103461149-81cf2400-4d5f-11eb-9fa3-825d1fed25ae.png"><img width="350" alt="image_rect_color.png" src="https://user-images.githubusercontent.com/52503908/103461153-84317e00-4d5f-11eb-87c3-0e944ffca398.png"> 
+<img width="400" alt="image_raw.png" src="https://user-images.githubusercontent.com/52503908/103461149-81cf2400-4d5f-11eb-9fa3-825d1fed25ae.png"> <img width="400" alt="image_rect_color.png" src="https://user-images.githubusercontent.com/52503908/103461153-84317e00-4d5f-11eb-87c3-0e944ffca398.png"> 
 
 # 2. Ball Tracking
 
@@ -122,8 +122,16 @@ $ roslaunch launch/track_ball.launch
 $ python scripts/detect_ball_demo.py
 ```
 
-<img width="600" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103461075-c1494080-4d5e-11eb-8fd4-255972b20b75.gif"> 
-<br />
-<br />
+<img width="600" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103473647-47f13280-4dde-11eb-940e-ca36cfdc0e00.gif"> 
 
-### 3. 
+### 3. Publishing ROS topic
+Finally, publish the ball position as a ROS topic, which will be subscribed by the Arduino. `scripts/ball_position_publisher.py` conducts the entire image processing of the previous sections and publishing ROS topic `/ball_position (opencv_apps/Circle)`. This script will be used as the final form of this section.  
+Fill the parameters in line 11~18 and confirm that the ball position is correctly published.
+
+```bash
+$ roslaunch launch/track_ball.launch
+$ python scripts/ball_position_publisher.py
+$ rostopic echo /ball_position
+```
+
+# 3. 
