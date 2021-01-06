@@ -1,7 +1,21 @@
 /* Multiple motors' control commands by daisy chain connected L6470 */
 
+/* check the nth bit of a is 1. */
+int checkBit(int n, uint8_t a) {
+    return a >> n & 0b1;
+}
+/* change nth bit to 1*/
+uint8_t bitFlip(int n, uint8_t pre_flag) {
+    return pre_flag | (0b01 << n);
+}
+/* change nth bit to 0*/
+uint8_t bitFlip2(int n, uint8_t pre_flag) {
+    return pre_flag & ~(0b01 << n);
+}
+
 void L6470_setparam_abspos(int n, long val){L6470_transfer(n,0x01,3,val);}
 void L6470_setparam_abspos(int n, long* val){L6470_transfer(n,0x01,3,val);}
+void L6470_setparam_abspos(int8_t m, int n, long val){L6470_transfer(m,n,0x01,3,val);}
 void L6470_setparam_elpos(int n, long val){L6470_transfer(n,0x02,2,val);}
 void L6470_setparam_mark(int n, long val){L6470_transfer(n,0x03,3,val);}
 void L6470_setparam_acc(int n, long val){L6470_transfer(n,0x05,2,val);}
@@ -64,6 +78,14 @@ void L6470_run(int n,int dia,long spd){
   else
     L6470_transfer(n,0x50,3,spd);
 }
+/* run mth motors*/
+void L6470_run_u(uint8_t m, int n, int dia, long spd){
+  if(dia==1){
+    L6470_transfer_u(m,n,0x51,3,spd);
+  } else {
+    L6470_transfer_u(m,n,0x50,3,spd);
+  }
+}
 void L6470_stepclock(int n,int dia){
   if(dia==1)
     L6470_transfer(n,0x59,0,(long)0);    
@@ -82,11 +104,17 @@ void L6470_goto(int n, long pos){
 void L6470_goto(int n, long *pos){
   L6470_transfer(n, 0x60,3,pos);
 }
+void L6470_goto(uint8_t m, int n, long *pos){
+  L6470_transfer(m, n, 0x60,3,pos);
+}
 void L6470_goto_u(int n, long pos) {
   L6470_transfer_u(n, 0x60,3,pos);
 }
 void L6470_goto_u(int n, long *pos) {
   L6470_transfer_u(n, 0x60,3,pos);
+}
+void L6470_goto_u(uint8_t m, int n, long *pos) {
+  L6470_transfer_u(m, n, 0x60,3,pos);
 }
 void L6470_gotodia(int n,int dia,int pos){
   if(dia==1)    
@@ -127,6 +155,9 @@ void L6470_gomark(int n){
 void L6470_resetpos(int n){
   L6470_transfer(n,0xd8,0,(long)0);
 }
+void L6470_resetpos(uint8_t m, int n){
+  L6470_transfer(m,n,0xd8,0,(long)0);
+}
 /* reset all n motors. */
 void L6470_resetdevice(int n){
   L6470_send_u(n,0x00);//nop命令
@@ -136,17 +167,12 @@ void L6470_resetdevice(int n){
   L6470_send_u(n,0xc0);
 }
 /* reset mth motor in n motors. */
-void L6470_resetdevice(int m, int n){
-  int tmp[n];
-  for (int i = 0; i < n; i += 1) {
-    tmp[i] = 0x00;
-  }
-  tmp[m] = 0xc0;
+void L6470_resetdevice(uint8_t m, int n){
   L6470_send_u(n,0x00);//nop命令
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
-  L6470_send_u(n,tmp);
+  L6470_send_u(m,n,0xc0);
 }
 void L6470_softstop(int n){
   L6470_transfer(n,0xb0,0,(long)0);
@@ -156,6 +182,10 @@ void L6470_hardstop(int n){
 }
 void L6470_hardstop_u(int n){
   L6470_transfer_u(n,0xb8,0,(long)0);
+}
+/* hardstop mth motors in n motors.*/
+void L6470_hardstop_u(uint8_t m, int n){
+  L6470_transfer_u(m,n,0xb8,0,(long)0);
 }
 void L6470_softhiz(int n){
   L6470_transfer(n,0xa0,0,(long)0);
@@ -175,6 +205,8 @@ void L6470_getstatus(long *val, int n){
   }
 }
 
+
+
 void L6470_transfer(int n, int add,int bytes,long val){
   int data[3][n];
   L6470_send(n, add);
@@ -192,6 +224,25 @@ void L6470_transfer(int n, int add,int bytes,long val){
   }
   if(bytes>=1){
     L6470_send(n, data[0]);
+  }  
+}
+void L6470_transfer(uint8_t m, int n, int add,int bytes,long val){
+  int data[3][n];
+  L6470_send(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val & 0xff;
+    }
+    val = val >> 8;
+  }
+  if(bytes==3){
+    L6470_send(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send(m, n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send(m, n, data[0]);
   }  
 }
 void L6470_transfer(int n, int add,int bytes,long *val){
@@ -213,6 +264,27 @@ void L6470_transfer(int n, int add,int bytes,long *val){
     L6470_send(n, data[0]);
   }  
 }
+/* send data to mth motors (m=ob001010 or something) and 0x00 to others in n motors. */
+void L6470_transfer(uint8_t m, int n, int add,int bytes,long *val){
+  int data[3][n];
+  L6470_send(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val[j] & 0xff;
+      val[j] = val[j] >> 8;
+    }
+  }
+  if(bytes==3){
+    L6470_send(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send(m ,n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send(m, n, data[0]);
+  }  
+}
+
 void L6470_transfer_u(int n, int add,int bytes,long val){
   int data[3][n];
   L6470_send_u(n, add);
@@ -230,6 +302,25 @@ void L6470_transfer_u(int n, int add,int bytes,long val){
   }
   if(bytes>=1){
     L6470_send_u(n, data[0]);
+  }  
+}
+void L6470_transfer_u(uint8_t m, int n, int add,int bytes,long val){
+  int data[3][n];
+  L6470_send_u(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val & 0xff;
+    }
+    val = val >> 8;
+  }
+  if(bytes==3){
+    L6470_send_u(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send_u(m, n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send_u(m, n, data[0]);
   }  
 }
 void L6470_transfer_u(int n, int add,int bytes,long *val){
@@ -251,6 +342,27 @@ void L6470_transfer_u(int n, int add,int bytes,long *val){
     L6470_send_u(n, data[0]);
   }  
 }
+/* send data to mth motors (m=ob001010 or something) and 0x00 to others in n motors. */
+void L6470_transfer_u(uint8_t m, int n, int add,int bytes,long *val){
+  int data[3][n];
+  L6470_send_u(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val[j] & 0xff;
+      val[j] = val[j] >> 8;
+    }
+  }
+  if(bytes==3){
+    L6470_send_u(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send_u(m ,n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send_u(m, n, data[0]);
+  }  
+}
+
 /* send same data to n motors. */
 void L6470_send(int n, int add_or_val){
   while(!digitalRead(PIN_BUSY)){
@@ -258,6 +370,20 @@ void L6470_send(int n, int add_or_val){
   digitalWrite(PIN_SPI_SS, LOW);
   for (int i = 0; i < n; i += 1) {
     SPI.transfer(add_or_val);
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
+/* send same data to mth(bit flag) motors in n motors. */
+void L6470_send(uint8_t m, int n, int add_or_val){
+  while(!digitalRead(PIN_BUSY)){
+  }
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val);
+    } else {
+      SPI.transfer(0x00);
+    }
   }
   digitalWrite(PIN_SPI_SS, HIGH);
 }
@@ -271,7 +397,20 @@ void L6470_send(int n, int *add_or_val){
   }
   digitalWrite(PIN_SPI_SS, HIGH);
 }
-
+/* send different data to mth(bit flag) motors in n motors. */
+void L6470_send(uint8_t m, int n, int *add_or_val){
+  while(!digitalRead(PIN_BUSY)){
+  }
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val[i]);
+    } else {
+      SPI.transfer(0x00);
+    }
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
 /* send same data to n motors. */
 void L6470_send_u(int n, int add_or_val){
   digitalWrite(PIN_SPI_SS, LOW);
@@ -280,11 +419,35 @@ void L6470_send_u(int n, int add_or_val){
   }
   digitalWrite(PIN_SPI_SS, HIGH);
 }
+/* send same data to mth(bit flag) motors in n motors. */
+void L6470_send_u(uint8_t m, int n, int add_or_val){
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val);
+    } else {
+      SPI.transfer(0x00);
+    }
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
 /* send different data to n motors. */
 void L6470_send_u(int n, int *add_or_val){
   digitalWrite(PIN_SPI_SS, LOW);
   for (int i = 0; i < n; i += 1) {
     SPI.transfer(add_or_val[i]);
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
+/* send different data to mth(bit flag) motors in n motors. */
+void L6470_send_u(uint8_t m, int n, int *add_or_val){
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val[i]);
+    } else {
+      SPI.transfer(0x00);
+    }
   }
   digitalWrite(PIN_SPI_SS, HIGH);
 }
