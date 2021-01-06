@@ -16,16 +16,22 @@ uint8_t bitFlip2(int n, uint8_t pre_flag) {
 void L6470_setparam_abspos(int n, long val){L6470_transfer(n,0x01,3,val);}
 void L6470_setparam_abspos(int n, long* val){L6470_transfer(n,0x01,3,val);}
 void L6470_setparam_abspos(int8_t m, int n, long val){L6470_transfer(m,n,0x01,3,val);}
+void L6470_setparam_abspos(int8_t m, int n, long *val){L6470_transfer(m,n,0x01,3,val);}
 void L6470_setparam_elpos(int n, long val){L6470_transfer(n,0x02,2,val);}
 void L6470_setparam_mark(int n, long val){L6470_transfer(n,0x03,3,val);}
 void L6470_setparam_acc(int n, long val){L6470_transfer(n,0x05,2,val);}
 void L6470_setparam_dec(int n, long val){L6470_transfer(n,0x06,2,val);}
 void L6470_setparam_acc(int n, long* val){L6470_transfer(n,0x05,2,val);}
 void L6470_setparam_dec(int n, long* val){L6470_transfer(n,0x06,2,val);}
+void L6470_setparam_acc(uint8_t m, int n, long* val){L6470_transfer(m,n,0x05,2,val);}
+void L6470_setparam_dec(uint8_t m, int n, long* val){L6470_transfer(m,n,0x06,2,val);}
 void L6470_setparam_maxspeed(int n, long val){L6470_transfer(n,0x07,2,val);}
 void L6470_setparam_minspeed(int n, long val){L6470_transfer(n,0x08,2,val);}
 void L6470_setparam_maxspeed(int n, long* val){L6470_transfer(n,0x07,2,val);}
+void L6470_setparam_maxspeed(uint8_t m, int n, long* val){L6470_transfer(m,n,0x07,2,val);}
+void L6470_setparam_minspeed(uint8_t m, int n, long val){L6470_transfer(m,n,0x08,2,val);}
 void L6470_setparam_fsspd(int n, long val){L6470_transfer(n,0x15,2,val);}
+void L6470_setparam_fsspd(uint8_t m, int n, long val){L6470_transfer(m,n,0x15,2,val);}
 void L6470_setparam_kvalhold(int n, long val){L6470_transfer(n,0x09,1,val);}
 void L6470_setparam_kvalrun(int n, long val){L6470_transfer(n,0x0a,1,val);}
 void L6470_setparam_kvalacc(int n, long val){L6470_transfer(n,0x0b,1,val);}
@@ -34,15 +40,23 @@ void L6470_setparam_kvalhold(int n, long* val){L6470_transfer(n,0x09,1,val);}
 void L6470_setparam_kvalrun(int n, long* val){L6470_transfer(n,0x0a,1,val);}
 void L6470_setparam_kvalacc(int n, long* val){L6470_transfer(n,0x0b,1,val);}
 void L6470_setparam_kvaldec(int n, long* val){L6470_transfer(n,0x0c,1,val);}
+void L6470_setparam_kvalhold(uint8_t m, int n, long* val){L6470_transfer(m,n,0x09,1,val);}
+void L6470_setparam_kvalrun(uint8_t m, int n, long* val){L6470_transfer(m,n,0x0a,1,val);}
+void L6470_setparam_kvalacc(uint8_t m, int n, long* val){L6470_transfer(m,n,0x0b,1,val);}
+void L6470_setparam_kvaldec(uint8_t m, int n, long* val){L6470_transfer(m,n,0x0c,1,val);}
 void L6470_setparam_intspd(int n, long val){L6470_transfer(n,0x0d,2,val);}
 void L6470_setparam_stslp(int n, long val){L6470_transfer(n,0x0e,1,val);}
 void L6470_setparam_fnslpacc(int n, long val){L6470_transfer(n,0x0f,1,val);}
 void L6470_setparam_fnslpdec(int n, long val){L6470_transfer(n,0x10,1,val);}
 void L6470_setparam_ktherm(int n, long val){L6470_transfer(n,0x11,1,val);}
 void L6470_setparam_ocdth(int n, long val){L6470_transfer(n,0x13,1,val);}
+void L6470_setparam_ocdth(uint8_t m, int n, long val){L6470_transfer(m,n,0x13,1,val);}
 void L6470_setparam_stallth(int n, long val){L6470_transfer(n,0x14,1,val);}
+void L6470_setparam_stallth(uint8_t m, int n, long val){L6470_transfer(m,n,0x14,1,val);}
 void L6470_setparam_stepmood(int n, long val){L6470_transfer(n,0x16,1,val);}
+void L6470_setparam_stepmood(uint8_t m, int n, long val){L6470_transfer(m,n,0x16,1,val);}
 void L6470_setparam_alareen(int n, long val){L6470_transfer(n,0x17,1,val);}
+void L6470_setparam_alareen(uint8_t m, int n, long val){L6470_transfer(m,n,0x17,1,val);}
 void L6470_setparam_config(int n, long val){L6470_transfer(n,0x18,2,val);}
 
 void L6470_getparam_abspos(long *val, int n){return L6470_getparam(val,n,0x01,3);}
@@ -80,6 +94,14 @@ void L6470_run(int n,int dia,long spd){
 }
 /* run mth motors*/
 void L6470_run_u(uint8_t m, int n, int dia, long spd){
+  if(dia==1){
+    L6470_transfer_u(m,n,0x51,3,spd);
+  } else {
+    L6470_transfer_u(m,n,0x50,3,spd);
+  }
+}
+/* run mth motors*/
+void L6470_run_u(uint8_t m, int n, int dia, long *spd){
   if(dia==1){
     L6470_transfer_u(m,n,0x51,3,spd);
   } else {
@@ -158,16 +180,28 @@ void L6470_resetpos(int n){
 void L6470_resetpos(uint8_t m, int n){
   L6470_transfer(m,n,0xd8,0,(long)0);
 }
-/* reset all n motors. */
 void L6470_resetdevice(int n){
+  L6470_send(n,0x00);//nop命令
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(n,0xc0);
+}
+void L6470_resetdevice_u(int n){
   L6470_send_u(n,0x00);//nop命令
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0xc0);
 }
-/* reset mth motor in n motors. */
 void L6470_resetdevice(uint8_t m, int n){
+  L6470_send(n,0x00);//nop命令
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(m,n,0xc0);
+}
+void L6470_resetdevice_u(uint8_t m, int n){
   L6470_send_u(n,0x00);//nop命令
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
@@ -192,6 +226,9 @@ void L6470_softhiz(int n){
 }
 void L6470_hardhiz(int n){
   L6470_transfer(n,0xa8,0,(long)0);
+}
+void L6470_hardhiz(uint8_t m, int n){
+  L6470_transfer(m,n,0xa8,0,(long)0);
 }
 void L6470_getstatus(long *val, int n){
   L6470_send_u(n,0xd0);
@@ -246,12 +283,14 @@ void L6470_transfer(uint8_t m, int n, int add,int bytes,long val){
   }  
 }
 void L6470_transfer(int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
   int data[3][n];
   L6470_send(n, add);
   for (int i = 0; i < 3; i += 1) {
     for (int j = 0; j < n; j += 1) {
-      data[i][j] = val[j] & 0xff;
-      val[j] = val[j] >> 8;
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
     }
   }
   if(bytes==3){
@@ -266,12 +305,14 @@ void L6470_transfer(int n, int add,int bytes,long *val){
 }
 /* send data to mth motors (m=ob001010 or something) and 0x00 to others in n motors. */
 void L6470_transfer(uint8_t m, int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
   int data[3][n];
   L6470_send(m, n, add);
   for (int i = 0; i < 3; i += 1) {
     for (int j = 0; j < n; j += 1) {
-      data[i][j] = val[j] & 0xff;
-      val[j] = val[j] >> 8;
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
     }
   }
   if(bytes==3){
@@ -324,12 +365,14 @@ void L6470_transfer_u(uint8_t m, int n, int add,int bytes,long val){
   }  
 }
 void L6470_transfer_u(int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
   int data[3][n];
   L6470_send_u(n, add);
   for (int i = 0; i < 3; i += 1) {
     for (int j = 0; j < n; j += 1) {
-      data[i][j] = val[j] & 0xff;
-      val[j] = val[j] >> 8;
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
     }
   }
   if(bytes==3){
@@ -344,12 +387,14 @@ void L6470_transfer_u(int n, int add,int bytes,long *val){
 }
 /* send data to mth motors (m=ob001010 or something) and 0x00 to others in n motors. */
 void L6470_transfer_u(uint8_t m, int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
   int data[3][n];
   L6470_send_u(m, n, add);
   for (int i = 0; i < 3; i += 1) {
     for (int j = 0; j < n; j += 1) {
-      data[i][j] = val[j] & 0xff;
-      val[j] = val[j] >> 8;
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
     }
   }
   if(bytes==3){
