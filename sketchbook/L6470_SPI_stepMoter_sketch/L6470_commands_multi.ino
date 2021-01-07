@@ -15,8 +15,8 @@ uint8_t bitFlip2(int n, uint8_t pre_flag) {
 
 void L6470_setparam_abspos(int n, long val){L6470_transfer(n,0x01,3,val);}
 void L6470_setparam_abspos(int n, long* val){L6470_transfer(n,0x01,3,val);}
-void L6470_setparam_abspos(int8_t m, int n, long val){L6470_transfer(m,n,0x01,3,val);}
-void L6470_setparam_abspos(int8_t m, int n, long *val){L6470_transfer(m,n,0x01,3,val);}
+void L6470_setparam_abspos(uint8_t m, int n, long val){L6470_transfer(m,n,0x01,3,val);}
+void L6470_setparam_abspos(uint8_t m, int n, long *val){L6470_transfer(m,n,0x01,3,val);}
 void L6470_setparam_elpos(int n, long val){L6470_transfer(n,0x02,2,val);}
 void L6470_setparam_mark(int n, long val){L6470_transfer(n,0x03,3,val);}
 void L6470_setparam_acc(int n, long val){L6470_transfer(n,0x05,2,val);}

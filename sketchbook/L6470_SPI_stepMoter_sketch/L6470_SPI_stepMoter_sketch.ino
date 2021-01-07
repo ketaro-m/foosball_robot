@@ -20,8 +20,7 @@ ros::NodeHandle nh;
 #define PIN_BUSY 9
 const int ERROR_PIN[N] = {2,3,4,5,6,7}; // digital pins
 const int RESET_PIN[N] = {54,55,56,57,58,59}; // analog pins A0,...,A5 
-// int dist = 20;
-// int ang = 90;
+const int PSEUDO_ERROR_PIN[3] = {62, 63, 64}; // エラーを自分で再現するため
 // parameters according to this machine environment
 int ROT = 200*pow(2, 7); // steps per 1 rotation
 int STROKE = 40; // stroke[mm] per 1 rotation
@@ -96,10 +95,15 @@ void setup()
     pinMode(RESET_PIN[i], OUTPUT);
     digitalWrite(RESET_PIN[i], HIGH);
   }
+  // あとで消す
+  for (int i=0; i<3; i+=1) {
+    pinMode(PSEUDO_ERROR_PIN[i], OUTPUT);
+    digitalWrite(PSEUDO_ERROR_PIN[i], HIGH);
+  }
   SPI.begin();
   SPI.setDataMode(SPI_MODE3);
   SPI.setBitOrder(MSBFIRST);
-  Serial.begin(115200);
+  // Serial.begin(115200);
   digitalWrite(PIN_SPI_SS, HIGH);
  
   L6470_resetdevice(N); //reset all motors
@@ -129,58 +133,17 @@ void loop(){
     // motor_timer = now;
   }
   nh.spinOnce();
-  delay(50);
-  // fulash();
+  delay(1);
 
-  /* check reset pins. */
-  uint8_t reset_motors = 0b000000;
-  for (int i = 0; i < N; i += 1) {
-    if (digitalRead(RESET_PIN[i]) == 0) {
-      reset_motors = bitFlip(i, reset_motors);
-    }
-  }
-  uint8_t recovered_motors = ~(non_error_motors) & reset_motors; // motors which recovered from the error, not just touched reset pin 
-  if (checkflag(reset_motors)) {  // in order to avoid unncessary nothing command.
-    L6470_hardstop_u(reset_motors, N);
-    L6470_setparam_abspos(reset_motors, N, reset_pos);
-    L6470_goto(reset_motors, N, reset_pos2);
-    // fulash();
-    Serial.println(reset_motors,BIN);
-    if (checkflag(recovered_motors)) {
-      L6470_resetdevice(recovered_motors, N);
-      L6470_setup(recovered_motors);
-      L6470_setparam_abspos(recovered_motors, N, reset_pos2);
-    }
-    L6470_resetdevice(reset_motors, N);
-    L6470_setup(reset_motors);
-    L6470_setparam_abspos(reset_motors, N, reset_pos2);
-    // fulash();
-    L6470_hardhiz(reset_motors, N);
-  }
-  non_error_motors = non_error_motors | recovered_motors; // recover if from error recovery mode
+  check_reset_pin();
+  check_error_pin();
 
-  // /* check error pins and change global non_error_motors flag. */
-  // for (int i = 0; i < N; i += 1) {
-  //   if (digitalRead(ERROR_PIN[i]) == 0) {
-  //     non_error_motors = bitFlip2(i, non_error_motors);
-  //   }
-  // }
-  /* あとでまるまる上に変更 デバッグ用 */
-  for (int i = 0; i < 3; i += 1) {
-    if (digitalRead(RESET_PIN[i]) == 0) {
-      non_error_motors = bitFlip2(i+3, non_error_motors);
-    }
-  }
-  uint8_t error_motion_first = ~(non_error_motors) & ~(error_motion); // motors which were not in error recovery motion
-  if (checkflag(error_motion_first)) {
-    error_recovery_motion(error_motion_first);
-  }
-  error_motion = ~(non_error_motors);
+
 
   // L6470_gohome(N);
   // delay(2000);
-  // int8_t mo = 0b110000;
-  // L6470_run_u(mo, N, 0, 0x6000);
+  // int8_t mo = 0b111000;
+  // L6470_run_u(mo, N, 0, 0x3000);
   // delay(1000);
   // L6470_hardstop_u(mo, N);
   // delay(2000);
@@ -205,15 +168,15 @@ void loop(){
   // L6470_busydelay(2000);
 }
 
-/* setup all motors. */
+/* setup motors. */
 void L6470_setup(uint8_t motors){
-  long acc[N] = {0x100, 0x100, 0x100, 0x300, 0x300, 0x300};
-  long dec[N] = {0x100, 0x100, 0x100, 0x300, 0x300, 0x300};
+  long acc[N] = {0x500, 0x500, 0x500, 0x300, 0x300, 0x300};
+  long dec[N] = {0x500, 0x500, 0x500, 0x300, 0x300, 0x300};
   long maxspeed[N] = {0x100, 0x100, 0x100, 0x100, 0x100, 0x100};
-  long kvalhold[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
-  long kvalrun[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
-  long kvalacc[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
-  long kvaldec[N] = {0x50, 0x50, 0x50, 0xd0, 0xd0, 0xd0};
+  long kvalhold[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
+  long kvalrun[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
+  long kvalacc[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
+  long kvaldec[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
   L6470_setparam_acc(motors, N, acc); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
   L6470_setparam_dec(motors, N, dec); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
   L6470_setparam_maxspeed(motors, N, maxspeed); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
@@ -223,8 +186,8 @@ void L6470_setup(uint8_t motors){
   L6470_setparam_kvalrun(motors, N, kvalrun); //[R, WR]定速回転時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
   L6470_setparam_kvalacc(motors, N, kvalacc); //[R, WR]加速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
   L6470_setparam_kvaldec(motors, N, kvaldec); //[R, WR]減速時励磁電圧default 0x29 (8bit) (Vs[V]*val/256)
-  L6470_setparam_alareen(motors, N, 0x70); // alarm enable for switch, stall detection
-  L6470_setparam_stallth(motors, N, 0x10); // 脱調検知の閾値 need tuning
+  L6470_setparam_alareen(motors, N, 0x30); // alarm enable, stall detection
+  L6470_setparam_stallth(motors, N, 0xff); // 脱調検知の閾値 need tuning
   L6470_setparam_ocdth(motors, N, 0xf);
 
   L6470_setparam_stepmood(motors, N, 0x07); //ステップモードdefault 0x07 (1+3+1+3bit) : 1/2^n*1.8[deg] が 1step 
@@ -270,32 +233,84 @@ boolean checkflag(uint8_t flag) {
 }
 
 
-void fulash() {
-  L6470_getparam_abspos(param, N);
-  pos2distang(param);
-  Serial.print("ABS_POS : ");
+/* check reset pins and */
+uint8_t check_reset_pin() {
+  uint8_t reset_motors = 0b000000;
   for (int i = 0; i < N; i += 1) {
-    Serial.print(param[i],DEC);
-    Serial.print(",");
+    if (digitalRead(RESET_PIN[i]) == 0) {
+      reset_motors = bitFlip(i, reset_motors);
+    }
   }
-  // Serial.print( pos2dist(L6470_getparam_abspos()),DEC);
-  L6470_getparam_speed(param, N);
-  Serial.print("  SPEED : ");
-  for (int i = 0; i < N; i += 1) {
-    Serial.print("0x");
-    Serial.print(param[i],HEX);
-    Serial.print(",");
+  uint8_t recovered_motors = ~(non_error_motors) & reset_motors; // motors which recovered from the error, not just touched reset pin 
+  if (checkflag(reset_motors)) {  // in order to avoid unncessary nothing command.
+    L6470_hardstop_u(reset_motors, N);
+    L6470_setparam_abspos(reset_motors, N, reset_pos);
+    L6470_goto(reset_motors, N, reset_pos2);
+    // fulash();
+    if (checkflag(recovered_motors)) {
+      L6470_resetdevice(recovered_motors, N);
+      L6470_setup(recovered_motors);
+      L6470_setparam_abspos(recovered_motors, N, reset_pos2);
+    }
+    L6470_resetdevice(reset_motors, N);
+    L6470_setup(reset_motors);
+    L6470_setparam_abspos(reset_motors, N, reset_pos2);
+    // fulash();
+    // L6470_hardhiz(reset_motors, N);
   }
-  // Serial.print( L6470_getparam_speed(),HEX);
-  Serial.print("  ERROR : ");
-  for (int i=0; i<N; i+=1) {
-    Serial.print(digitalRead(ERROR_PIN[i]));
-  }
-  Serial.print(",  RESET : ");
-  for (int i=0; i<N; i+=1) {
-    Serial.print(digitalRead(RESET_PIN[i]));
-  }
-  Serial.print(",  non_error_motors : ");
-  Serial.print(non_error_motors,BIN);
-  Serial.println();
+  non_error_motors = non_error_motors | recovered_motors; // recover if from error recovery mode
+
+  return reset_motors;
 }
+
+/* check error pins and change global non_error_motors flag. */
+void check_error_pin() {
+  // for (int i = 0; i < N; i += 1) {
+  //   if (digitalRead(ERROR_PIN[i]) == 0) {
+  //     non_error_motors = bitFlip2(i, non_error_motors);
+  //   }
+  // }
+  /* あとでまるまる上に変更 デバッグ用 */
+  for (int i = 0; i < 3; i += 1) {
+    if (digitalRead(PSEUDO_ERROR_PIN[i]) == 0) {
+      non_error_motors = bitFlip2(i, non_error_motors);
+      non_error_motors = bitFlip2(i+3, non_error_motors);
+    }
+  }
+  uint8_t error_motion_first = ~(non_error_motors) & ~(error_motion); // motors which were not in error recovery motion
+  if (checkflag(error_motion_first)) {
+    error_recovery_motion(error_motion_first, error_recovery_speed);
+  }
+  error_motion = ~(non_error_motors);
+}
+
+
+// void fulash() {
+//   L6470_getparam_abspos(param, N);
+//   pos2distang(param);
+//   Serial.print("ABS_POS : ");
+//   for (int i = 0; i < N; i += 1) {
+//     Serial.print(param[i],DEC);
+//     Serial.print(",");
+//   }
+//   // Serial.print( pos2dist(L6470_getparam_abspos()),DEC);
+//   L6470_getparam_speed(param, N);
+//   Serial.print("  SPEED : ");
+//   for (int i = 0; i < N; i += 1) {
+//     Serial.print("0x");
+//     Serial.print(param[i],HEX);
+//     Serial.print(",");
+//   }
+//   // Serial.print( L6470_getparam_speed(),HEX);
+//   Serial.print("  ERROR : ");
+//   for (int i=0; i<N; i+=1) {
+//     Serial.print(digitalRead(ERROR_PIN[i]));
+//   }
+//   Serial.print(",  RESET : ");
+//   for (int i=0; i<N; i+=1) {
+//     Serial.print(digitalRead(RESET_PIN[i]));
+//   }
+//   Serial.print(",  non_error_motors : ");
+//   Serial.print(non_error_motors,BIN);
+//   Serial.println();
+// }

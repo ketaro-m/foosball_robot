@@ -119,6 +119,9 @@ class cvBridgeDemo:
         if show:
             display=image.copy()
             cv2.rectangle(display, tuple(field_area[0]),tuple(field_area[1]), (0, 255, 0))
+            for i in range(5):
+                x = (field_area[1][0]-field_area[0][0])/6*(i+1) + field_area[0][0]
+                cv2.line(display,(x,field_area[0][1]),(x,field_area[1][1]),(0,255,0))
             for circle in circles:
                 cv2.circle(display,circle["center"],circle["radius"],(0,0,255),2)
             cv2.imshow("ball region", display)   
