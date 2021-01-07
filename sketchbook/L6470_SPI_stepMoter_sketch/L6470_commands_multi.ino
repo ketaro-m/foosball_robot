@@ -123,6 +123,9 @@ void L6470_move(int n,int dia,long n_step){
 void L6470_goto(int n, long pos){
   L6470_transfer(n, 0x60,3,pos);
 }
+void L6470_goto(uint8_t m, int n, long pos){
+  L6470_transfer(m, n, 0x60,3,pos);
+}
 void L6470_goto(int n, long *pos){
   L6470_transfer(n, 0x60,3,pos);
 }
@@ -131,6 +134,9 @@ void L6470_goto(uint8_t m, int n, long *pos){
 }
 void L6470_goto_u(int n, long pos) {
   L6470_transfer_u(n, 0x60,3,pos);
+}
+void L6470_goto_u(uint8_t m, int n, long pos){
+  L6470_transfer_u(m, n, 0x60,3,pos);
 }
 void L6470_goto_u(int n, long *pos) {
   L6470_transfer_u(n, 0x60,3,pos);

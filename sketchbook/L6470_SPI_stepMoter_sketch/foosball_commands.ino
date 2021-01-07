@@ -5,7 +5,7 @@
 long field_size[2] = {590, 345}; //[mm] (width, height)
 long max_y = 85; // 
 long player_size = field_size[1] / 3 - max_y;
-boolean kick_flag[3] = {false, false, false}; // true if the rotate motor is in the kicking motion
+uint8_t kick_motors = 0b000000; // if the rotate motor is in the kicking motion (3~5 bits)
 
 
 /* judge which x-axis part of 6 (left:0, right 5) the ball is in. even:me, odd:opponent. */
@@ -25,24 +25,38 @@ void defense(long y) {
     pos[0] = pos[1] = pos[2] = y2pos(y);
     stepper_msg.data[26] = y2pos(y);
     distang2pos(pos);
-    L6470_goto_u(N, pos);
+    L6470_goto_u(non_error_motors, N, pos);
+}
+
+/* kicking motion */
+void kick(uint8_t motors) {
+    motors = motors & 0b111000; // for safety
+    long take_back = ang2pos(45);
+    long follow_through = ang2pos(135);
+    L6470_goto_u(motors, N, take_back);
+    L6470_goto(motors, N, follow_through);
 }
 
 void offense(long y, int x_index) {
-    int motor_num = x_index / 2; // motor in the ball zone
+    int motor_num = x_index / 2; // linear motor in the ball zone
 
     pos[0] = pos[1] = pos[2] = y2pos(y);
-    // move other motors to opening position
+    // move other rotational motors to opening position
     for (int i = 0; i < 3; i += 1) {
         if (i != motor_num) {
             pos[i+3] = 10;
         }
     }
-    // if (kick_flag[motor_num] == false) {
-    //     kick(motor_num+3);
-    // } else {
-    //     pos
-    // }
+    if (checkBit(motor_num+3, kick_motors)==0) {
+        kick_motors = bitFlip(motor_num+3, kick_motors);
+    }
+    uint8_t non_kick_motors = ~kick_motors & non_error_motors;
+    distang2pos(pos);
+    L6470_goto_u(non_kick_motors, N, pos);
+    if (checkflag(kick_motors)) {
+        kick(kick_motors);
+        kick_motors = 0b0;
+    }
 }
 
 void command(long x, long y) {
@@ -53,8 +67,8 @@ void command(long x, long y) {
     if (x_index % 2 == 1) {
         defense(y);
     } else {
-        // offense(y, x_index);
-        defense(y);
+        offense(y, x_index);
+        // defense(y);
     }
     
 
