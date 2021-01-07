@@ -4,7 +4,7 @@
 #include <ros.h>
 // #include <sensor_msgs/Joy.h> // Joy stick
 #include <opencv_apps/Circle.h>
-#include <std_msgs/Int8MultiArray.h> // to publish pin values
+#include <std_msgs/Int32MultiArray.h> // to publish pin values
 ros::NodeHandle nh;
 // #include "L6470_commands.ino"
 // #include "L6470_commands_multi.ino"
@@ -38,14 +38,14 @@ long reset_pos2[N] = {5, 5, 5, 170, 170, 170}; // positions to move just after t
 
 void stepper_cb(const opencv_apps::Circle& msg);
 ros::Subscriber<opencv_apps::Circle> stepper_sub("ball_position", stepper_cb);
-std_msgs::Int8MultiArray stepper_msg;
+std_msgs::Int32MultiArray stepper_msg;
 ros::Publisher stepper_pub("stepper", &stepper_msg);
 
 
 void stepper_setup() {
-  stepper_msg.data_length = N*4;
-  stepper_msg.data = (int8_t *)malloc(sizeof(int8_t)*N*4);
-  for (int i = 0; i < N*4; i += 1) {
+  stepper_msg.data_length = N*5;
+  stepper_msg.data = (int32_t *)malloc(sizeof(int32_t)*N*5);
+  for (int i = 0; i < N*5; i += 1) {
     stepper_msg.data[i] = 0;
   }
 
@@ -67,14 +67,11 @@ void stepper_publish_loop() {
 
 /* subscribe ball_position and control stepper motors */
 void stepper_cb(const opencv_apps::Circle& msg) {
-  // command((long)msg.center.x, (long)msg.center.y);
+  command((long)msg.center.x, (long)msg.center.y);
   for (int i = 0; i < N; i += 1) {
     stepper_msg.data[i+N*3] = pos[i];
   }
 }
-
-/* */
-
 
 void setup()
 {
@@ -108,7 +105,8 @@ void setup()
  
   L6470_resetdevice(N); //reset all motors
   L6470_setup(0b111111);
-  delay(2000);
+  delay(5000);
+  initial_setup();
   
   // MsTimer2::set(100, fulash);//シリアルモニター用のタイマー割り込み
   // MsTimer2::start();

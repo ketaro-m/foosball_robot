@@ -9,7 +9,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
 # parameters you need to fill in depending on the camera setting
-field_area = [[33, 50], [605, 405]] # [[top-left x,y], [bottom-right x, y]]
+field_area = [[30, 50], [602, 405]] # [[top-left x,y], [bottom-right x, y]]
 # obtain from hsv.py
 hsv_lower = np.array([20, -10, 100])
 hsv_upper = np.array([50, 64, 300])
@@ -122,6 +122,9 @@ class cvBridgeDemo:
             for i in range(5):
                 x = (field_area[1][0]-field_area[0][0])/6*(i+1) + field_area[0][0]
                 cv2.line(display,(x,field_area[0][1]),(x,field_area[1][1]),(0,255,0))
+            for i in range(3):
+                y = (field_area[1][1]-field_area[0][1])/3*(i+1) + field_area[0][1]
+                cv2.line(display,(field_area[0][0],y),(field_area[1][0],y),(0,255,0))
             for circle in circles:
                 cv2.circle(display,circle["center"],circle["radius"],(0,0,255),2)
             cv2.imshow("ball region", display)   
