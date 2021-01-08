@@ -19,20 +19,22 @@ long y2pos(long y) {
     return min(max(y_tmp - player_size/2, 0), max_y);
 }
 
-void defense(long y) {
-    pos[3] = pos[4] = pos[5] = 90;
+void defense(long y, int x_index) {
+    int motor_num = (x_index-1) / 2; // linear motor in the ball zone
+    for (int i = 3; i > motor_num; i -= 1) { pos[i+3] = 45;} // forward than the ball
+    for (int i = motor_num; i >= 0; i -= 1) { pos[i+3] = 75;} // backward than the ball
     // later change to more complex
     pos[0] = pos[1] = pos[2] = y2pos(y);
-    stepper_msg.data[26] = y2pos(y);
     distang2pos(pos);
-    L6470_goto_u(non_error_motors, N, pos);
+    uint8_t non_kick_motors = ~kick_motors & non_error_motors;
+    L6470_goto_u(non_kick_motors, N, pos);
 }
 
 /* kicking motion */
 void kick(uint8_t motors) {
     motors = motors & 0b111000; // for safety
     long take_back = ang2pos(45);
-    long follow_through = ang2pos(135);
+    long follow_through = ang2pos(130);
     L6470_goto_u(motors, N, take_back);
     L6470_goto(motors, N, follow_through);
 }
@@ -44,7 +46,7 @@ void offense(long y, int x_index) {
     // move other rotational motors to opening position
     for (int i = 0; i < 3; i += 1) {
         if (i != motor_num) {
-            pos[i+3] = 10;
+            pos[i+3] = 30;
         }
     }
     if (checkBit(motor_num+3, kick_motors)==0) {
@@ -63,12 +65,12 @@ void command(long x, long y) {
 
     y = field_size[1] - y;
     int x_index = xIndex(x);
-    stepper_msg.data[25] = x_index;
+    stepper_msg.data[N*3] = x;
+    stepper_msg.data[N*3+1] = y;
     if (x_index % 2 == 1) {
-        defense(y);
+        defense(y, x_index);
     } else {
         offense(y, x_index);
-        // defense(y);
     }
     
 
@@ -100,5 +102,5 @@ void initial_setup() {
     long pos[N] = {30, 30, 30, 90, 90, 90};
     distang2pos(pos);
     L6470_goto(N, pos);
-    L6470_busydelay(1000);
+    L6470_busydelay(2000);
 }

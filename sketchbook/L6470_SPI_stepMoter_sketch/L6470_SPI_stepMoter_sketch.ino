@@ -43,9 +43,9 @@ ros::Publisher stepper_pub("stepper", &stepper_msg);
 
 
 void stepper_setup() {
-  stepper_msg.data_length = N*5;
-  stepper_msg.data = (int32_t *)malloc(sizeof(int32_t)*N*5);
-  for (int i = 0; i < N*5; i += 1) {
+  stepper_msg.data_length = N*3 + 2;
+  stepper_msg.data = (int32_t *)malloc(sizeof(int32_t)*(N*3+2));
+  for (int i = 0; i < N*3+2; i += 1) {
     stepper_msg.data[i] = 0;
   }
 
@@ -53,7 +53,7 @@ void stepper_setup() {
   nh.advertise(stepper_pub);
 }
 
-/* publish the motors' state [abs_pos*6, error_pin*6, reset_pin*6] */
+/* publish the motors' state [abs_pos*6, error_pin*6, reset_pin*6, ball_position(x,y)] */
 void stepper_publish_loop() {
   L6470_getparam_abspos(param, N);
   pos2distang(param);
@@ -68,9 +68,9 @@ void stepper_publish_loop() {
 /* subscribe ball_position and control stepper motors */
 void stepper_cb(const opencv_apps::Circle& msg) {
   command((long)msg.center.x, (long)msg.center.y);
-  for (int i = 0; i < N; i += 1) {
-    stepper_msg.data[i+N*3] = pos[i];
-  }
+  // for (int i = 0; i < N; i += 1) {
+  //   stepper_msg.data[i+N*3] = pos[i];
+  // }
 }
 
 void setup()
@@ -105,7 +105,7 @@ void setup()
  
   L6470_resetdevice(N); //reset all motors
   L6470_setup(0b111111);
-  delay(5000);
+  delay(3000);
   initial_setup();
   
   // MsTimer2::set(100, fulash);//シリアルモニター用のタイマー割り込み
@@ -123,13 +123,7 @@ void loop(){
     stepper_publish_loop();
     publish_timer = now;
   }
-  if ((now - motor_timer) > 100) {
-    // distang2pos(pos_copy);
-    // // L6470_hardstop_u(N);
-    // // L6470_goto_u(N, pos_copy);
-    // memcpy(pos_copy, pos, sizeof(pos));
-    // motor_timer = now;
-  }
+
   nh.spinOnce();
   delay(1);
 
@@ -168,13 +162,13 @@ void loop(){
 
 /* setup motors. */
 void L6470_setup(uint8_t motors){
-  long acc[N] = {0x500, 0x500, 0x500, 0x300, 0x300, 0x300};
-  long dec[N] = {0x500, 0x500, 0x500, 0x300, 0x300, 0x300};
+  long acc[N] = {0x500, 0x500, 0x500, 0x500, 0x500, 0x500};
+  long dec[N] = {0x500, 0x500, 0x500, 0x500, 0x500, 0x500};
   long maxspeed[N] = {0x100, 0x100, 0x100, 0x100, 0x100, 0x100};
-  long kvalhold[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
-  long kvalrun[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
-  long kvalacc[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
-  long kvaldec[N] = {0x10, 0x10, 0x10, 0x10, 0x10, 0x10};
+  long kvalhold[N] = {0x10, 0x10, 0x10, 0x80, 0x80, 0x80};
+  long kvalrun[N] = {0x10, 0x10, 0x10, 0x80, 0x80, 0x80};
+  long kvalacc[N] = {0x10, 0x10, 0x10, 0x80, 0x80, 0x80};
+  long kvaldec[N] = {0x10, 0x10, 0x10, 0x80, 0x80, 0x80};
   L6470_setparam_acc(motors, N, acc); //[R, WS] 加速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
   L6470_setparam_dec(motors, N, dec); //[R, WS] 減速度default 0x08A (12bit) (14.55*val+14.55[step/s^2])
   L6470_setparam_maxspeed(motors, N, maxspeed); //[R, WR]最大速度default 0x041 (10bit) (15.25*val+15.25[step/s])
@@ -271,7 +265,7 @@ void check_error_pin() {
   /* あとでまるまる上に変更 デバッグ用 */
   for (int i = 0; i < 3; i += 1) {
     if (digitalRead(PSEUDO_ERROR_PIN[i]) == 0) {
-      non_error_motors = bitFlip2(i, non_error_motors);
+      // non_error_motors = bitFlip2(i, non_error_motors);
       non_error_motors = bitFlip2(i+3, non_error_motors);
     }
   }
