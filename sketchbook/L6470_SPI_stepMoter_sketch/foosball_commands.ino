@@ -1,7 +1,5 @@
 /* commands for stepping motor */
 
-// #include "L6470_SPI_stepMoter_sketch.ino"
-
 long field_size[2] = {590, 345}; //[mm] (width, height)
 long max_y = 80; // 
 long player_size = field_size[1] / 3 - max_y;
@@ -27,9 +25,7 @@ void defense(long y, int x_index) {
     for (int i = motor_num; i >= 0; i -= 1) {
         pos[i+3] = 75;
         pos[i] = y2pos(y);
-    } // backward than the ball posessing opposite
-    // later change to more complex
-    // pos[0] = pos[1] = pos[2] = y2pos(y);
+    } // backward than the ball posessing opposit
     array_copy(pos, pos_copy, N);
     distang2pos(pos);
     uint8_t non_kick_motors = ~kick_motors & non_error_motors;
@@ -48,7 +44,6 @@ void kick(uint8_t motors) {
 
 void offense(long y, int x_index) {
     int motor_num = x_index / 2; // linear motor in the ball zone
-
     for (int i = 3; i > motor_num; i -= 1) {
         pos[i+3] = 30;
     } // forward than the kick bar
@@ -77,7 +72,6 @@ void command(long x, long y) {
     stepper_msg.data[N*3] = x;
     stepper_msg.data[N*3+1] = y;
 
-    pos2distang(pos);
     if (x_index % 2 == 1) {
         defense(y, x_index);
     } else {

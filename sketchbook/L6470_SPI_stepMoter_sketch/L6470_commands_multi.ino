@@ -201,14 +201,14 @@ void L6470_resetdevice_u(int n){
   L6470_send_u(n,0xc0);
 }
 void L6470_resetdevice(uint8_t m, int n){
-  L6470_send(n,0x00);//nop命令
+  L6470_send(n,0x00);
   L6470_send(n,0x00);
   L6470_send(n,0x00);
   L6470_send(n,0x00);
   L6470_send(m,n,0xc0);
 }
 void L6470_resetdevice_u(uint8_t m, int n){
-  L6470_send_u(n,0x00);//nop命令
+  L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
