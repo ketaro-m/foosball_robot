@@ -28,7 +28,7 @@ int STROKE = 40; // stroke[mm] per 1 rotation
 long param[N]; // array to get and store register values such as abs_pos, speed, etc.
 /* position array to control motors */
 long pos[N] = {0, 0, 0, 0, 0, 0};
-long pos_copy[N] = {0, 0, 0, 0, 0, 0}; // copy for motor command because distang2pos rewrites array itself
+long pos_copy[N] = {0, 0, 0, 0, 0, 0}; // copy pos because distang2pos change its values.
 uint8_t non_error_motors = 0b111111; // mth bit is 0 if the mth motor steps out
 uint8_t error_motion = 0b000000; // if mth motor is in error recovery motion or not (in order to avoid double command sending)
 // long error_recovery_speed = 0x6000; // motor speed of error recovery motion.
@@ -274,6 +274,13 @@ void check_error_pin() {
     error_recovery_motion(error_motion_first, error_recovery_speed);
   }
   error_motion = ~(non_error_motors);
+}
+
+/*copying array a to b, n elements. */
+void array_copy(long *a, long *b, int n) {
+  for (int i = 0; i < n; i += 1) {
+    b[i] = a[i];
+  }
 }
 
 

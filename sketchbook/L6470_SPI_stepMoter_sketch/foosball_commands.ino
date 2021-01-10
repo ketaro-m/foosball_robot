@@ -3,7 +3,7 @@
 // #include "L6470_SPI_stepMoter_sketch.ino"
 
 long field_size[2] = {590, 345}; //[mm] (width, height)
-long max_y = 85; // 
+long max_y = 80; // 
 long player_size = field_size[1] / 3 - max_y;
 uint8_t kick_motors = 0b000000; // if the rotate motor is in the kicking motion (3~5 bits)
 
@@ -21,13 +21,20 @@ long y2pos(long y) {
 
 void defense(long y, int x_index) {
     int motor_num = (x_index-1) / 2; // linear motor in the ball zone
-    for (int i = 3; i > motor_num; i -= 1) { pos[i+3] = 45;} // forward than the ball
-    for (int i = motor_num; i >= 0; i -= 1) { pos[i+3] = 75;} // backward than the ball
+    for (int i = 3; i > motor_num; i -= 1) {
+        pos[i+3] = 45;
+    } // forward than the ball possessing opposite
+    for (int i = motor_num; i >= 0; i -= 1) {
+        pos[i+3] = 75;
+        pos[i] = y2pos(y);
+    } // backward than the ball posessing opposite
     // later change to more complex
-    pos[0] = pos[1] = pos[2] = y2pos(y);
+    // pos[0] = pos[1] = pos[2] = y2pos(y);
+    array_copy(pos, pos_copy, N);
     distang2pos(pos);
     uint8_t non_kick_motors = ~kick_motors & non_error_motors;
     L6470_goto_u(non_kick_motors, N, pos);
+    array_copy(pos_copy, pos, N);
 }
 
 /* kicking motion */
@@ -42,38 +49,40 @@ void kick(uint8_t motors) {
 void offense(long y, int x_index) {
     int motor_num = x_index / 2; // linear motor in the ball zone
 
-    pos[0] = pos[1] = pos[2] = y2pos(y);
-    // move other rotational motors to opening position
-    for (int i = 0; i < 3; i += 1) {
-        if (i != motor_num) {
-            pos[i+3] = 30;
-        }
-    }
+    for (int i = 3; i > motor_num; i -= 1) {
+        pos[i+3] = 30;
+    } // forward than the kick bar
+    for (int i = motor_num-1; i >= 0; i -= 1) {
+        pos[i+3] = 90;
+    } // backward than the kick bar
+    pos[motor_num] = y2pos(y);
     if (checkBit(motor_num+3, kick_motors)==0) {
         kick_motors = bitFlip(motor_num+3, kick_motors);
     }
     uint8_t non_kick_motors = ~kick_motors & non_error_motors;
+
+    array_copy(pos, pos_copy, N);
     distang2pos(pos);
     L6470_goto_u(non_kick_motors, N, pos);
     if (checkflag(kick_motors)) {
         kick(kick_motors);
         kick_motors = 0b0;
     }
+    array_copy(pos_copy, pos, N);
 }
 
 void command(long x, long y) {
-
     y = field_size[1] - y;
     int x_index = xIndex(x);
     stepper_msg.data[N*3] = x;
     stepper_msg.data[N*3+1] = y;
+
+    pos2distang(pos);
     if (x_index % 2 == 1) {
         defense(y, x_index);
     } else {
         offense(y, x_index);
     }
-    
-
 }
 
 /* motion when the error flags occur. Move rotation motor forward dir=1, linear motor backward*/
@@ -100,7 +109,9 @@ void initial_setup() {
         motors = motors & ~reset_pin;
     }
     long pos[N] = {30, 30, 30, 90, 90, 90};
+    array_copy(pos, pos_copy, N);
     distang2pos(pos);
     L6470_goto(N, pos);
+    array_copy(pos_copy, pos, N);
     L6470_busydelay(2000);
 }
