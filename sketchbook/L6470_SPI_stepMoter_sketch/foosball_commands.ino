@@ -1,7 +1,7 @@
 /* commands for stepping motor */
 
 long field_size[2] = {590, 345}; //[mm] (width, height)
-long max_y = 80; // 
+long max_y = 80; //[mm] the stroke 
 long player_size = field_size[1] / 3 - max_y;
 uint8_t kick_motors = 0b000000; // if the rotate motor is in the kicking motion (3~5 bits)
 

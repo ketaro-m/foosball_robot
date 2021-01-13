@@ -1,13 +1,17 @@
 # Foosball Robot
-description here...
+This is a vision controlled foosball table. The camera above the table processes the image and tracks the ball's position. The Arduino receives that information via ROS communication and control six stepper motors simultaneously; linear and rotation axes for three bars.
+
+
+<img width="500" alt="cameracallibrator.png" src="https://user-images.githubusercontent.com/52503908/104432977-6a055600-553e-11eb-997c-a28c9240fb2e.jpg">
 
 # Demo
+Dome video is here. &rarr; https://youtu.be/knL-YN4Qc_c
 
 # Environment
 
 ## Hardware
 - [Arduino Mega 2560](https://store.arduino.cc/usa/mega-2560-r3)
-- [L6470 stepper motor driver](https://www.st.com/en/motor-drivers/l6470.html)
+- [L6470 stepper motor driver](https://www.st.com/en/motor-drivers/l6470.html) ([datasheet](https://www.st.com/resource/en/datasheet/l6470.pdf))
 
 ### Circuit diagram
 
@@ -16,13 +20,19 @@ description here...
 - Ubuntu 18.04
 - ROS Melodic Morenia
 
-###  ROS packages
+### ROS packages
 
 - [uvc_camera](http://wiki.ros.org/uvc_camera)
 - [camera_calibration](http://wiki.ros.org/camera_calibration)
 - [image_proc](http://wiki.ros.org/image_proc)
+- [cv_brigde](http://wiki.ros.org/cv_bridge)
+- [rosserial](http://wiki.ros.org/rosserial)
 - [rqt_image_view](http://wiki.ros.org/rqt_image_view)
-- [Joy](http://wiki.ros.org/joy)
+- ([Joy](http://wiki.ros.org/joy))
+
+### System diagram
+<img width="1000" alt="cameracallibrator.png" src="https://user-images.githubusercontent.com/52503908/104117345-fc9dcd80-5363-11eb-9976-a87af1b70c4d.png">
+
 
 # 1. Camera Calibration
 
@@ -122,7 +132,7 @@ $ roslaunch launch/track_ball.launch
 $ python scripts/detect_ball_demo.py
 ```
 
-<img width="600" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103473647-47f13280-4dde-11eb-940e-ca36cfdc0e00.gif"> 
+<img width="500" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103473647-47f13280-4dde-11eb-940e-ca36cfdc0e00.gif"> 
 
 ### 3. Publishing ROS topic
 Finally, publish the ball position as a ROS topic, which will be subscribed by the Arduino. `scripts/ball_position_publisher.py` conducts the entire image processing of the previous sections and publishing ROS topic `/ball_position (opencv_apps/Circle)`. This script will be used as the final form of this section.  
@@ -134,4 +144,23 @@ $ python scripts/ball_position_publisher.py
 $ rostopic echo /ball_position
 ```
 
-# 3. 
+# 3. Let's play!
+Now you've prepared all pieces. Kichoff is almost there!  
+
+After writing "sketchbook/L6470_SPI_stepMoter_sketch/L6470_SPI_stepMoter_sketch.ino" into the Arduino Mega, launch the uvc_camera node and rosserial node by the following command.
+
+```bash
+$ roslaunch launch/stepper_camera_driver.launch
+```
+Once the nodes have been successfully launched, the motor positions will be initialized like this.
+
+<img width="500" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/104434871-9d48e480-5540-11eb-8eaa-bd36699bf271.gif"> 
+
+The last thing you have to do is launching the image processing node. If you start running this program, the whole ROS pipeline is establish and the robot starts moving.
+
+```bash
+$ python scripts/ball_position_publisher.py
+```
+Enjoy fighting!
+
+<img width="500" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/104434386-04b26480-5540-11eb-88b3-14b09f56ff3b.gif"> 
