@@ -1,26 +1,62 @@
 /* Multiple motors' control commands by daisy chain connected L6470 */
 
+/* check the nth bit of a is 1. */
+int checkBit(int n, uint8_t a) {
+    return a >> n & 0b1;
+}
+/* change nth bit to 1*/
+uint8_t bitFlip(int n, uint8_t pre_flag) {
+    return pre_flag | (0b01 << n);
+}
+/* change nth bit to 0*/
+uint8_t bitFlip2(int n, uint8_t pre_flag) {
+    return pre_flag & ~(0b01 << n);
+}
+
 void L6470_setparam_abspos(int n, long val){L6470_transfer(n,0x01,3,val);}
+void L6470_setparam_abspos(int n, long* val){L6470_transfer(n,0x01,3,val);}
+void L6470_setparam_abspos(uint8_t m, int n, long val){L6470_transfer(m,n,0x01,3,val);}
+void L6470_setparam_abspos(uint8_t m, int n, long *val){L6470_transfer(m,n,0x01,3,val);}
 void L6470_setparam_elpos(int n, long val){L6470_transfer(n,0x02,2,val);}
 void L6470_setparam_mark(int n, long val){L6470_transfer(n,0x03,3,val);}
 void L6470_setparam_acc(int n, long val){L6470_transfer(n,0x05,2,val);}
 void L6470_setparam_dec(int n, long val){L6470_transfer(n,0x06,2,val);}
+void L6470_setparam_acc(int n, long* val){L6470_transfer(n,0x05,2,val);}
+void L6470_setparam_dec(int n, long* val){L6470_transfer(n,0x06,2,val);}
+void L6470_setparam_acc(uint8_t m, int n, long* val){L6470_transfer(m,n,0x05,2,val);}
+void L6470_setparam_dec(uint8_t m, int n, long* val){L6470_transfer(m,n,0x06,2,val);}
 void L6470_setparam_maxspeed(int n, long val){L6470_transfer(n,0x07,2,val);}
 void L6470_setparam_minspeed(int n, long val){L6470_transfer(n,0x08,2,val);}
+void L6470_setparam_maxspeed(int n, long* val){L6470_transfer(n,0x07,2,val);}
+void L6470_setparam_maxspeed(uint8_t m, int n, long* val){L6470_transfer(m,n,0x07,2,val);}
+void L6470_setparam_minspeed(uint8_t m, int n, long val){L6470_transfer(m,n,0x08,2,val);}
 void L6470_setparam_fsspd(int n, long val){L6470_transfer(n,0x15,2,val);}
+void L6470_setparam_fsspd(uint8_t m, int n, long val){L6470_transfer(m,n,0x15,2,val);}
 void L6470_setparam_kvalhold(int n, long val){L6470_transfer(n,0x09,1,val);}
 void L6470_setparam_kvalrun(int n, long val){L6470_transfer(n,0x0a,1,val);}
 void L6470_setparam_kvalacc(int n, long val){L6470_transfer(n,0x0b,1,val);}
 void L6470_setparam_kvaldec(int n, long val){L6470_transfer(n,0x0c,1,val);}
+void L6470_setparam_kvalhold(int n, long* val){L6470_transfer(n,0x09,1,val);}
+void L6470_setparam_kvalrun(int n, long* val){L6470_transfer(n,0x0a,1,val);}
+void L6470_setparam_kvalacc(int n, long* val){L6470_transfer(n,0x0b,1,val);}
+void L6470_setparam_kvaldec(int n, long* val){L6470_transfer(n,0x0c,1,val);}
+void L6470_setparam_kvalhold(uint8_t m, int n, long* val){L6470_transfer(m,n,0x09,1,val);}
+void L6470_setparam_kvalrun(uint8_t m, int n, long* val){L6470_transfer(m,n,0x0a,1,val);}
+void L6470_setparam_kvalacc(uint8_t m, int n, long* val){L6470_transfer(m,n,0x0b,1,val);}
+void L6470_setparam_kvaldec(uint8_t m, int n, long* val){L6470_transfer(m,n,0x0c,1,val);}
 void L6470_setparam_intspd(int n, long val){L6470_transfer(n,0x0d,2,val);}
 void L6470_setparam_stslp(int n, long val){L6470_transfer(n,0x0e,1,val);}
 void L6470_setparam_fnslpacc(int n, long val){L6470_transfer(n,0x0f,1,val);}
 void L6470_setparam_fnslpdec(int n, long val){L6470_transfer(n,0x10,1,val);}
 void L6470_setparam_ktherm(int n, long val){L6470_transfer(n,0x11,1,val);}
 void L6470_setparam_ocdth(int n, long val){L6470_transfer(n,0x13,1,val);}
+void L6470_setparam_ocdth(uint8_t m, int n, long val){L6470_transfer(m,n,0x13,1,val);}
 void L6470_setparam_stallth(int n, long val){L6470_transfer(n,0x14,1,val);}
+void L6470_setparam_stallth(uint8_t m, int n, long val){L6470_transfer(m,n,0x14,1,val);}
 void L6470_setparam_stepmood(int n, long val){L6470_transfer(n,0x16,1,val);}
+void L6470_setparam_stepmood(uint8_t m, int n, long val){L6470_transfer(m,n,0x16,1,val);}
 void L6470_setparam_alareen(int n, long val){L6470_transfer(n,0x17,1,val);}
+void L6470_setparam_alareen(uint8_t m, int n, long val){L6470_transfer(m,n,0x17,1,val);}
 void L6470_setparam_config(int n, long val){L6470_transfer(n,0x18,2,val);}
 
 void L6470_getparam_abspos(long *val, int n){return L6470_getparam(val,n,0x01,3);}
@@ -56,6 +92,22 @@ void L6470_run(int n,int dia,long spd){
   else
     L6470_transfer(n,0x50,3,spd);
 }
+/* run mth motors*/
+void L6470_run_u(uint8_t m, int n, int dia, long spd){
+  if(dia==1){
+    L6470_transfer_u(m,n,0x51,3,spd);
+  } else {
+    L6470_transfer_u(m,n,0x50,3,spd);
+  }
+}
+/* run mth motors*/
+void L6470_run_u(uint8_t m, int n, int dia, long *spd){
+  if(dia==1){
+    L6470_transfer_u(m,n,0x51,3,spd);
+  } else {
+    L6470_transfer_u(m,n,0x50,3,spd);
+  }
+}
 void L6470_stepclock(int n,int dia){
   if(dia==1)
     L6470_transfer(n,0x59,0,(long)0);    
@@ -71,14 +123,26 @@ void L6470_move(int n,int dia,long n_step){
 void L6470_goto(int n, long pos){
   L6470_transfer(n, 0x60,3,pos);
 }
+void L6470_goto(uint8_t m, int n, long pos){
+  L6470_transfer(m, n, 0x60,3,pos);
+}
 void L6470_goto(int n, long *pos){
   L6470_transfer(n, 0x60,3,pos);
+}
+void L6470_goto(uint8_t m, int n, long *pos){
+  L6470_transfer(m, n, 0x60,3,pos);
 }
 void L6470_goto_u(int n, long pos) {
   L6470_transfer_u(n, 0x60,3,pos);
 }
+void L6470_goto_u(uint8_t m, int n, long pos){
+  L6470_transfer_u(m, n, 0x60,3,pos);
+}
 void L6470_goto_u(int n, long *pos) {
   L6470_transfer_u(n, 0x60,3,pos);
+}
+void L6470_goto_u(uint8_t m, int n, long *pos) {
+  L6470_transfer_u(m, n, 0x60,3,pos);
 }
 void L6470_gotodia(int n,int dia,int pos){
   if(dia==1)    
@@ -119,26 +183,36 @@ void L6470_gomark(int n){
 void L6470_resetpos(int n){
   L6470_transfer(n,0xd8,0,(long)0);
 }
-/* reset all n motors. */
+void L6470_resetpos(uint8_t m, int n){
+  L6470_transfer(m,n,0xd8,0,(long)0);
+}
 void L6470_resetdevice(int n){
+  L6470_send(n,0x00);//nop命令
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(n,0xc0);
+}
+void L6470_resetdevice_u(int n){
   L6470_send_u(n,0x00);//nop命令
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0xc0);
 }
-/* reset mth motor in n motors. */
-void L6470_resetdevice(int m, int n){
-  int tmp[n];
-  for (int i = 0; i < n; i += 1) {
-    tmp[i] = 0x00;
-  }
-  tmp[m] = 0xc0;
-  L6470_send_u(n,0x00);//nop命令
+void L6470_resetdevice(uint8_t m, int n){
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(n,0x00);
+  L6470_send(m,n,0xc0);
+}
+void L6470_resetdevice_u(uint8_t m, int n){
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
   L6470_send_u(n,0x00);
-  L6470_send_u(n,tmp);
+  L6470_send_u(n,0x00);
+  L6470_send_u(m,n,0xc0);
 }
 void L6470_softstop(int n){
   L6470_transfer(n,0xb0,0,(long)0);
@@ -149,23 +223,32 @@ void L6470_hardstop(int n){
 void L6470_hardstop_u(int n){
   L6470_transfer_u(n,0xb8,0,(long)0);
 }
+/* hardstop mth motors in n motors.*/
+void L6470_hardstop_u(uint8_t m, int n){
+  L6470_transfer_u(m,n,0xb8,0,(long)0);
+}
 void L6470_softhiz(int n){
   L6470_transfer(n,0xa0,0,(long)0);
 }
 void L6470_hardhiz(int n){
   L6470_transfer(n,0xa8,0,(long)0);
 }
+void L6470_hardhiz(uint8_t m, int n){
+  L6470_transfer(m,n,0xa8,0,(long)0);
+}
 void L6470_getstatus(long *val, int n){
   L6470_send_u(n,0xd0);
   for(int i=0;i<=1;i++){
-    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
+    digitalWrite(PIN_SPI_SS, LOW);
     for (int j = 0; j < n; j += 1) {
       val[j] = val[j] << 8;
-      val[j] = val[j] | SPI.transfer(0x00); // アドレスもしくはデータ送信。
+      val[j] = val[j] | SPI.transfer(0x00);
     }
-    digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+    digitalWrite(PIN_SPI_SS, HIGH);
   }
 }
+
+
 
 void L6470_transfer(int n, int add,int bytes,long val){
   int data[3][n];
@@ -185,20 +268,35 @@ void L6470_transfer(int n, int add,int bytes,long val){
   if(bytes>=1){
     L6470_send(n, data[0]);
   }  
-  // for (int i = 0; i < n; i += 1) {
-  //   Serial.println("data");
-  //   for (int j = 0; j < 3; j += 1) {
-  //     Serial.println(data[j][i]);
-  //   }
-  // }
+}
+void L6470_transfer(uint8_t m, int n, int add,int bytes,long val){
+  int data[3][n];
+  L6470_send(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val & 0xff;
+    }
+    val = val >> 8;
+  }
+  if(bytes==3){
+    L6470_send(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send(m, n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send(m, n, data[0]);
+  }  
 }
 void L6470_transfer(int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
   int data[3][n];
   L6470_send(n, add);
   for (int i = 0; i < 3; i += 1) {
     for (int j = 0; j < n; j += 1) {
-      data[i][j] = val[j] & 0xff;
-      val[j] = val[j] >> 8;
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
     }
   }
   if(bytes==3){
@@ -211,6 +309,29 @@ void L6470_transfer(int n, int add,int bytes,long *val){
     L6470_send(n, data[0]);
   }  
 }
+/* send data to mth motors (m=ob001010 or something) and 0x00 to others in n motors. */
+void L6470_transfer(uint8_t m, int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
+  int data[3][n];
+  L6470_send(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
+    }
+  }
+  if(bytes==3){
+    L6470_send(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send(m ,n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send(m, n, data[0]);
+  }  
+}
+
 void L6470_transfer_u(int n, int add,int bytes,long val){
   int data[3][n];
   L6470_send_u(n, add);
@@ -230,13 +351,34 @@ void L6470_transfer_u(int n, int add,int bytes,long val){
     L6470_send_u(n, data[0]);
   }  
 }
+void L6470_transfer_u(uint8_t m, int n, int add,int bytes,long val){
+  int data[3][n];
+  L6470_send_u(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val & 0xff;
+    }
+    val = val >> 8;
+  }
+  if(bytes==3){
+    L6470_send_u(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send_u(m, n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send_u(m, n, data[0]);
+  }  
+}
 void L6470_transfer_u(int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
   int data[3][n];
   L6470_send_u(n, add);
   for (int i = 0; i < 3; i += 1) {
     for (int j = 0; j < n; j += 1) {
-      data[i][j] = val[j] & 0xff;
-      val[j] = val[j] >> 8;
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
     }
   }
   if(bytes==3){
@@ -249,42 +391,116 @@ void L6470_transfer_u(int n, int add,int bytes,long *val){
     L6470_send_u(n, data[0]);
   }  
 }
+/* send data to mth motors (m=ob001010 or something) and 0x00 to others in n motors. */
+void L6470_transfer_u(uint8_t m, int n, int add,int bytes,long *val){
+  long val_copy[n];// copy not to destruct *val
+  for (int i = 0; i < n; i += 1) {val_copy[i] = val[i];}
+  int data[3][n];
+  L6470_send_u(m, n, add);
+  for (int i = 0; i < 3; i += 1) {
+    for (int j = 0; j < n; j += 1) {
+      data[i][j] = val_copy[j] & 0xff;
+      val_copy[j] = val_copy[j] >> 8;
+    }
+  }
+  if(bytes==3){
+    L6470_send_u(m, n, data[2]);
+  }
+  if(bytes>=2){
+    L6470_send_u(m ,n, data[1]);
+  }
+  if(bytes>=1){
+    L6470_send_u(m, n, data[0]);
+  }  
+}
+
 /* send same data to n motors. */
 void L6470_send(int n, int add_or_val){
   while(!digitalRead(PIN_BUSY)){
-  } //BESYが解除されるまで待機
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
-  for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val); // アドレスもしくはデータ送信
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    SPI.transfer(add_or_val);
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
+/* send same data to mth(bit flag) motors in n motors. */
+void L6470_send(uint8_t m, int n, int add_or_val){
+  while(!digitalRead(PIN_BUSY)){
+  }
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val);
+    } else {
+      SPI.transfer(0x00);
+    }
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
 /* send different data to n motors. */
 void L6470_send(int n, int *add_or_val){
   while(!digitalRead(PIN_BUSY)){
-  } //BESYが解除されるまで待機
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
-  for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val[i]); // アドレスもしくはデータ送信
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    SPI.transfer(add_or_val[i]);
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
-
+/* send different data to mth(bit flag) motors in n motors. */
+void L6470_send(uint8_t m, int n, int *add_or_val){
+  while(!digitalRead(PIN_BUSY)){
+  }
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val[i]);
+    } else {
+      SPI.transfer(0x00);
+    }
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
 /* send same data to n motors. */
 void L6470_send_u(int n, int add_or_val){
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
+  digitalWrite(PIN_SPI_SS, LOW);
   for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val); // アドレスもしくはデータ送信
+    SPI.transfer(add_or_val);
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
+/* send same data to mth(bit flag) motors in n motors. */
+void L6470_send_u(uint8_t m, int n, int add_or_val){
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val);
+    } else {
+      SPI.transfer(0x00);
+    }
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
 /* send different data to n motors. */
 void L6470_send_u(int n, int *add_or_val){
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル
+  digitalWrite(PIN_SPI_SS, LOW);
   for (int i = 0; i < n; i += 1) {
-    SPI.transfer(add_or_val[i]); // アドレスもしくはデータ送信
+    SPI.transfer(add_or_val[i]);
   }
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  digitalWrite(PIN_SPI_SS, HIGH);
+}
+/* send different data to mth(bit flag) motors in n motors. */
+void L6470_send_u(uint8_t m, int n, int *add_or_val){
+  digitalWrite(PIN_SPI_SS, LOW);
+  for (int i = 0; i < n; i += 1) {
+    if (checkBit(i, m) == 1) {
+      SPI.transfer(add_or_val[i]);
+    } else {
+      SPI.transfer(0x00);
+    }
+  }
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
 void L6470_getparam(long *val, int n,int add,int bytes){
   for (int i = 0; i < n; i += 1) {
@@ -293,61 +509,11 @@ void L6470_getparam(long *val, int n,int add,int bytes){
   int send_add = add | 0x20;
   L6470_send_u(n,send_add);
   for(int i=0;i<=bytes-1;i++){
-    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
+    digitalWrite(PIN_SPI_SS, LOW);
     for (int j = 0; j < n; j += 1) {
       val[j] = val[j] << 8;
-      val[j] = val[j] | SPI.transfer(0x00); // アドレスもしくはデータ送信。
+      val[j] = val[j] | SPI.transfer(0x00);
     }
-      digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+      digitalWrite(PIN_SPI_SS, HIGH); 
   }
 }
-
-// void send1_L6470(int8_t x , int8_t y) {
-//   digitalWrite(10, LOW);
-//   SPI.transfer(x);
-//   SPI.transfer(y);
-//   digitalWrite(10, HIGH);
-// }
-// void send2_L6470(int16_t x, int16_t y) {
-//   int8_t buf1[2];
-//   buf1[0] = x >> 8;
-//   buf1[1] = x & 0xff;
-//   int8_t buf2[2];
-//   buf2[0] = y >> 8;
-//   buf2[1] = y & 0xff;
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[0]);
-//   SPI.transfer(buf2[0]);
-//   digitalWrite(10, HIGH);
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[1]);
-//   SPI.transfer(buf2[1]);
-//   digitalWrite(10, HIGH);
-// }
-// void send3_L6470(int32_t x, int32_t y) {
-//   int8_t buf1[3];
-//   buf1[0] = x >> 16;
-//   buf1[1] = x >> 8;
-//   buf1[2] = x & 0xff;
-//   int8_t buf2[3];
-//   buf2[0] = y >> 16;
-//   buf2[1] = y >> 8;
-//   buf2[2] = y & 0xff;
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[0]);
-//   SPI.transfer(buf2[0]);
-//   digitalWrite(10, HIGH);
-
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[1]);
-//   SPI.transfer(buf2[1]);
-//   digitalWrite(10, HIGH);
-  
-//   digitalWrite(10, LOW);
-//   SPI.transfer(buf1[2]);
-//   SPI.transfer(buf2[2]);
-//   digitalWrite(10, HIGH);
-// }

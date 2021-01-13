@@ -1,15 +1,11 @@
-/*ver 1.00 2013/4/24*/
-/*ver 1.01 2013/12/14 コメント追記*/
-
-/*L6470 コントロール　コマンド
+/*L6470 control command
  引数-----------------------
- dia   1:正転 0:逆転,
+ dia   1:positive 0:negative
  spd  (20bit)(0.015*spd[step/s])
  pos  (22bit)
  n_step (22bit)
- act   1:絶対座標をマーク  0:絶対座標リセット
- mssec ミリ秒
- val 各レジスタに書き込む値
+ act   1:marking abs_pos  0:reset abs_pos
+ mssec millisecond 
  ---------------------------
  L6470_run(dia,spd); //指定方向に連続回転
  L6470_stepclock(dia); //指定方向にstepピンのクロックで回転
@@ -57,13 +53,13 @@
  L6470_setparam_config(val); //[R, WH]各種設定default 0x2e88 (3+3+2+1+1+1+1+1+3bit)
  //L6470_status //[R]状態read onry (16bit)
 
- [R]:読み取り専用
- [WR]:いつでも書き換え可
- [WH]:書き込みは出力がハイインピーダンスの時のみ可
- [WS]:書き換えはモータが停止している時のみ可
+ [R]:read only
+ [WR]:read and write anytime
+ [WH]:can write when the inpedance is high
+ [WS]:can write when the motor isn't moving
  
  
- レジスタ読み込みコマンド(返り値　long型)
+ read regisgters' value(return type: long)
  L6470_getparam_abspos();
  L6470_getparam_elpos();
  L6470_getparam_mark();
@@ -207,7 +203,7 @@ void L6470_resetpos(){
   L6470_transfer(0xd8,0,0);
 }
 void L6470_resetdevice(){
-  L6470_send_u(0x00);//nop命令
+  L6470_send_u(0x00);
   L6470_send_u(0x00);
   L6470_send_u(0x00);
   L6470_send_u(0x00);
@@ -233,9 +229,9 @@ long L6470_getstatus(){
   L6470_send_u(0xd0);
   for(int i=0;i<=1;i++){
     val = val << 8;
-    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
-    val = val | SPI.transfer(0x00); // アドレスもしくはデータ送信。
-    digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+    digitalWrite(PIN_SPI_SS, LOW);
+    val = val | SPI.transfer(0x00);
+    digitalWrite(PIN_SPI_SS, HIGH);
   }
   return val;
 }
@@ -276,17 +272,17 @@ void L6470_transfer_u(int add,int bytes,long val){
 }
 void L6470_send(unsigned char add_or_val){
   while(!digitalRead(PIN_BUSY)){
-  } //BESYが解除されるまで待機
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
-  SPI.transfer(add_or_val); // アドレスもしくはデータ送信。
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+  }
+  digitalWrite(PIN_SPI_SS, LOW);
+  SPI.transfer(add_or_val);
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
-void L6470_send_u(unsigned char add_or_val){//busyを確認せず送信するため用
-  digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
-  SPI.transfer(add_or_val); // アドレスもしくはデータ送信。
-  digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル。
+void L6470_send_u(unsigned char add_or_val){
+  digitalWrite(PIN_SPI_SS, LOW);
+  SPI.transfer(add_or_val);
+  digitalWrite(PIN_SPI_SS, HIGH);
 }
-void L6470_busydelay(long time){//BESYが解除されるまで待機
+void L6470_busydelay(long time){
   while(!digitalRead(PIN_BUSY)){
   }
   delay(time);
@@ -297,9 +293,9 @@ long L6470_getparam(int add,int bytes){
   L6470_send_u(send_add);
   for(int i=0;i<=bytes-1;i++){
     val = val << 8;
-    digitalWrite(PIN_SPI_SS, LOW); // ~SSイネーブル。
-    val = val | SPI.transfer(0x00); // アドレスもしくはデータ送信。
-    digitalWrite(PIN_SPI_SS, HIGH); // ~SSディスエーブル 
+    digitalWrite(PIN_SPI_SS, LOW);
+    val = val | SPI.transfer(0x00);
+    digitalWrite(PIN_SPI_SS, HIGH); 
   }
   return val;
 }
