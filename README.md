@@ -11,7 +11,8 @@ Dome video is here. &rarr; https://youtu.be/knL-YN4Qc_c
 
 ## Hardware
 - [Arduino Mega 2560](https://store.arduino.cc/usa/mega-2560-r3)
-- [L6470 stepper motor driver](https://www.st.com/en/motor-drivers/l6470.html) ([datasheet](https://www.st.com/resource/en/datasheet/l6470.pdf))
+- [L6470 stepper motor driver](https://www.st.com/en/motor-drivers/l6470.html) ([datasheet](https://www.st.com/resource/en/datasheet/l6470.pdf))  
+... details are on [the report](https://github.com/ketaro-m/foosball_robot/blob/main/docs/report.pdf)
 
 ### Circuit diagram
 
@@ -26,9 +27,10 @@ Dome video is here. &rarr; https://youtu.be/knL-YN4Qc_c
 - [camera_calibration](http://wiki.ros.org/camera_calibration)
 - [image_proc](http://wiki.ros.org/image_proc)
 - [cv_brigde](http://wiki.ros.org/cv_bridge)
-- [rosserial](http://wiki.ros.org/rosserial)
+- [opencv_apps](http://wiki.ros.org/opencv_apps)
+- [rosserial](http://wiki.ros.org/rosserial) (See [*Appendix A*](#appendix-a:-installing-rosserial) when installing)
 - [rqt_image_view](http://wiki.ros.org/rqt_image_view)
-- ([Joy](http://wiki.ros.org/joy))
+- ([Joy](http://wiki.ros.org/joy)) &larr; Joy stick controll mode (see [joy branch](https://github.com/ketaro-m/foosball_robot/tree/joy))
 
 ### System diagram
 <img width="1000" alt="cameracallibrator.png" src="https://user-images.githubusercontent.com/52503908/104117345-fc9dcd80-5363-11eb-9976-a87af1b70c4d.png">
@@ -109,7 +111,7 @@ To do so, save a camera view image using the save button of the rqt_image_viewer
 ```bash
 $ python scripts/hsv.py [image file name]
 ```
-Click the ball in the "hsv" image window, and check the 
+Click the ball in the "hsv" image window, and check the HSV value which is printed on the terminal. 
 
 <img width="1000" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103461145-7c71d980-4d5f-11eb-9089-f0d71ea11f1a.png"> 
 <br />
@@ -129,7 +131,7 @@ In terminal, run the following commands.
 
 ```bash
 $ roslaunch launch/track_ball.launch
-$ python scripts/detect_ball_demo.py
+$ python scripts/track_ball_demo.py
 ```
 
 <img width="500" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/103473647-47f13280-4dde-11eb-940e-ca36cfdc0e00.gif"> 
@@ -145,7 +147,7 @@ $ rostopic echo /ball_position
 ```
 
 # 3. Let's play!
-Now you've prepared all pieces. Kichoff is almost there!  
+Now you've prepared all pieces. Kickoff is almost there!  
 
 After writing "sketchbook/L6470_SPI_stepMoter_sketch/L6470_SPI_stepMoter_sketch.ino" into the Arduino Mega, launch the uvc_camera node and rosserial node by the following command.
 
@@ -156,7 +158,7 @@ Once the nodes have been successfully launched, the motor positions will be init
 
 <img width="500" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/104434871-9d48e480-5540-11eb-8eaa-bd36699bf271.gif"> 
 
-The last thing you have to do is launching the image processing node. If you start running this program, the whole ROS pipeline is establish and the robot starts moving.
+The last thing you have to do is launching the image processing node. If you start running this program, the whole ROS pipeline is established and the robot starts moving.
 
 ```bash
 $ python scripts/ball_position_publisher.py
@@ -164,3 +166,23 @@ $ python scripts/ball_position_publisher.py
 Enjoy fighting!
 
 <img width="500" alt="hsv_optimization.png" src="https://user-images.githubusercontent.com/52503908/104434386-04b26480-5540-11eb-88b3-14b09f56ff3b.gif"> 
+
+
+# Appendix
+## *Appendix A: Installing rosserial*
+
+First, you need to install the ros packages.
+
+```bash
+$ sudo apt install ros-melodic-rosserial
+$ sudo apt instlal ros-melodic-rosserial-arduino
+```
+
+Second, go to the *libraries* directory below the installed Arduino folder, and run the following setup script which is given by the rosserial package.
+
+```bash
+$ cd ~/arduino-1.8.13/libraries
+$ rosrun rosserial_arduino make_libraries.py .
+$ ls | grep ros_lib  # check if it's successfully installed
+ros_lib
+```
