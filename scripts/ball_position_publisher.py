@@ -9,10 +9,10 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
 # parameters you need to fill in depending on the camera setting
-field_area = [[37, 55], [605, 405]] # [[top-left x,y], [bottom-right x, y]]
+field_area = [[42, 67], [597, 410]] # [[top-left x,y], [bottom-right x, y]]
 # obtain from hsv.py
-hsv_lower = np.array([20, 0, 100])
-hsv_upper = np.array([50, 84, 300])
+hsv_lower = np.array([30, -30, 120])
+hsv_upper = np.array([100, 60, 250])
 median_size = 7      # filter size for median filter
 morpho_size = 13     # filter size for morphology processing
 field_size = [590.0, 345.0]   # actual filed size [mm] (width, height)

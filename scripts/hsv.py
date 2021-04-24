@@ -10,7 +10,7 @@ import numpy as np
 
 image_hsv = None   # global ;(
 pixel = (20,60,80) # some stupid default
-field_area = [[33, 50], [605, 405]] # [[top-left x,y], [bottom-right x, y]]
+field_area = [[42, 67], [597, 410]] # [[top-left x,y], [bottom-right x, y]]
 contours = [field_area[0], 
             [field_area[0][0],
             field_area[1][1]], 
