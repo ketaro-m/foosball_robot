@@ -24,11 +24,12 @@ Dome video is here. &rarr; https://youtu.be/knL-YN4Qc_c
 ### ROS packages
 
 - [uvc_camera](http://wiki.ros.org/uvc_camera)
+- [usb_cam](http://wiki.ros.org/usb_cam) &larr; use this package instead of uvc_camera if uvc_camera doesn't support your camera driver's pixel format.
 - [camera_calibration](http://wiki.ros.org/camera_calibration)
 - [image_proc](http://wiki.ros.org/image_proc)
 - [cv_brigde](http://wiki.ros.org/cv_bridge)
 - [opencv_apps](http://wiki.ros.org/opencv_apps)
-- [rosserial](http://wiki.ros.org/rosserial) (See [*Appendix A*](#appendix-a:-installing-rosserial) when installing)
+- [rosserial](http://wiki.ros.org/rosserial) (See [*Appendix A*](#appendix-a:-installing-rosserial) for installation)
 - [rqt_image_view](http://wiki.ros.org/rqt_image_view)
 - ([Joy](http://wiki.ros.org/joy)) &larr; Joy stick controll mode (see [joy branch](https://github.com/ketaro-m/foosball_robot/tree/joy))
 
@@ -81,7 +82,7 @@ $ rqt_image_view
 or run this launch file (yet, need to modify the absolute path to camera.yaml in line 4)
 
 ```bash
-$ roslaunch launch/calibration_demo.launch
+$ roslaunch launch/calibration_demo.launch # use "calibration_demo_usb.launch" instead for usb_cam package 
 ```
 
 <img width="400" alt="image_raw.png" src="https://user-images.githubusercontent.com/52503908/103461149-81cf2400-4d5f-11eb-9fa3-825d1fed25ae.png"> <img width="400" alt="image_rect_color.png" src="https://user-images.githubusercontent.com/52503908/103461153-84317e00-4d5f-11eb-87c3-0e944ffca398.png"> 
@@ -93,7 +94,7 @@ $ roslaunch launch/calibration_demo.launch
 After establishing the camera nodes, open rqt_image_view and select /image_rect_color. Then click the top-left and bottom-right points and check their pixel x, y values with echoing /image_rect_color_mouse_left.
 
 ```bash
-$ roslaunch launch/track_ball.launch
+$ roslaunch launch/track_ball.launch # use "track_ball_usb.launch" instead for usb_cam package
 $ rqt_image_view # select /image_rect_color
 $ rostopic echo /image_rect_color_mouse_left
 ```
@@ -141,7 +142,7 @@ Finally, publish the ball position as a ROS topic, which will be subscribed by t
 Fill the parameters in line 11~18 and confirm that the ball position is correctly published.
 
 ```bash
-$ roslaunch launch/track_ball.launch
+$ roslaunch launch/track_ball.launch # use "track_ball_usb.launch" instead for usb_cam package
 $ python scripts/ball_position_publisher.py
 $ rostopic echo /ball_position
 ```
@@ -152,7 +153,7 @@ Now you've prepared all pieces. Kickoff is almost there!
 After writing "sketchbook/L6470_SPI_stepMoter_sketch/L6470_SPI_stepMoter_sketch.ino" into the Arduino Mega, launch the uvc_camera node and rosserial node by the following command.
 
 ```bash
-$ roslaunch launch/stepper_camera_driver.launch
+$ roslaunch launch/stepper_camera_driver.launch # use "stepper_camera_driver_usb.launch" instead for usb_cam package
 ```
 Once the nodes have been successfully launched, the motor positions will be initialized like this.
 
@@ -175,7 +176,7 @@ First, you need to install the ros packages.
 
 ```bash
 $ sudo apt install ros-melodic-rosserial
-$ sudo apt instlal ros-melodic-rosserial-arduino
+$ sudo apt install ros-melodic-rosserial-arduino
 ```
 
 Second, go to the *libraries* directory below the installed Arduino folder, and run the following setup script which is given by the rosserial package.
