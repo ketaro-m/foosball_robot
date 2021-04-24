@@ -84,7 +84,7 @@ void error_recovery_motion(uint8_t motors, long *speed) {
     uint8_t rot_motors = motors & 0b111000;
     uint8_t lin_motors = motors & 0b000111;
     if (checkflag(rot_motors)) {
-        L6470_run_u(rot_motors, N, 1, speed); // dir=1, forward, or to positive
+        L6470_run_u(rot_motors, N, 0, speed); // dir=0, backward, or to negative
     }
     if (checkflag(lin_motors)) {
         L6470_run_u(lin_motors, N, 0, speed); // dir=0, backward, or to negative

@@ -30,8 +30,8 @@ uint8_t non_error_motors = 0b111111; // mth bit is 0 if the mth motor steps out
 uint8_t error_motion = 0b000000; // if mth motor is in error recovery motion or not (in order to avoid double command sending)
 // long error_recovery_speed = 0x6000; // motor speed of error recovery motion.
 long error_recovery_speed[N] = {0x6000, 0x6000, 0x6000, 0x3000, 0x3000, 0x3000}; // motor speed of error recovery motion.
-long reset_pos[N] = {0, 0, 0, 180, 180, 180}; // set positions when the reset pin is pushed.
-long reset_pos2[N] = {5, 5, 5, 170, 170, 170}; // positions to move just after touching reset pin in order to avoid touching pins forever
+long reset_pos[N] = {0, 0, 0, 0, 0, 0}; // set positions when the reset pin is pushed.
+long reset_pos2[N] = {5, 5, 5, 10, 10, 10}; // positions to move just after touching reset pin in order to avoid touching pins forever
 
 void stepper_cb(const opencv_apps::Circle& msg);
 ros::Subscriber<opencv_apps::Circle> stepper_sub("ball_position", stepper_cb);
